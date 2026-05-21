@@ -1,0 +1,94 @@
+.version-selector {
+  border: 1px solid #ccc;
+  padding: 16px;
+  border-radius: 8px;
+  margin-top: 24px;
+}
+
+.version-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.version-selector h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.refresh-btn {
+  font-size: 0.8rem;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.version-selector.error {
+  color: red;
+}
+
+.version-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.version-row {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.version-btn {
+  flex: 1;
+  text-align: left;
+  background: none;
+  border: 1px solid #ddd;
+  padding: 12px;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.version-btn:hover {
+  background-color: #f5f5f5;
+}
+
+.version-date {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.version-search {
+  width: 100%;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  box-sizing: border-box;
+}
+
+.version-tag {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  background-color: #e0e7ff;
+  color: #3730a3;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.edit-btn {
+  align-self: center;
+  padding: 8px 12px;
+  border-radius: 4px;
+}
+
+.delete-btn {
+  align-self: center;
+  padding: 8px 12px;
+  border-radius: 4px;
+}

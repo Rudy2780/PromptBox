@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: versionsApi.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: versionsApi.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>const API_BASE = "http://localhost:8000";
+
+
+/**
+ * Save a new prompt version to the user's account.
+ * @param {string} token - JWT authentication token
+ * @param {Object} payload
+ * @param {string} payload.name - Version name (1–255 characters)
+ * @param {string|null} payload.tag - Optional tag (max 32 characters)
+ * @param {string} payload.prompt_text - The prompt content
+ * @param {string|null} payload.response_text - Optional LLM response text
+ * @param {string|null} payload.response_model - Optional model identifier
+ * @param {number|null} payload.response_latency - Optional response time in seconds
+ * @returns {Promise&lt;VersionResponse>} The created version with id and created_at
+ * @throws {Error} Server error detail message on non-OK responses
+ */
+export async function saveVersion(token, payload) {
+    const res = await fetch(`${API_BASE}/api/versions/`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+        },
+        body : JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+
+    if(!res.ok) {
+        const detail = data &amp;&amp; data.detail ? data.detail : "Failed to save version";
+        throw new Error(detail);
+    } 
+
+    return data;
+}
+
+
+/**
+ * Fetch all saved versions for the authenticated user, optionally filtered by search.
+ * @param {string} token - JWT authentication token
+ * @param {string} [search] - Optional search string to filter by name or tag
+ * @returns {Promise&lt;Array&lt;VersionResponse>>} Array of matching versions
+ * @throws {Error} Server error detail message on non-OK responses
+ */
+export async function getVersions(token, search) {
+    const url = new URL(`${API_BASE}/api/versions/`);
+    if (search) {
+        url.searchParams.set("search", search);
+    }
+    const res = await fetch(url.toString(), {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    });
+    const data = await res.json();
+    if (!res.ok) {
+        throw new Error(data?.detail || "Failed to fetch versions");
+    }
+    return data;
+}
+
+
+/**
+ * Fetch a single version by ID.
+ * @param {string} token - JWT authentication token
+ * @param {number} id - The version ID to retrieve
+ * @returns {Promise&lt;VersionResponse>} The requested version
+ * @throws {Error} Server error detail message if not found or unauthorized
+ */
+export async function getVersion(token, id) {
+    const res = await fetch(`${API_BASE}/api/versions/${id}`, {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    });
+    const data = await res.json();
+    if (!res.ok) {
+        throw new Error(data?.detail || "Failed to fetch version");
+    }
+    return data;
+}
+
+
+/**
+ * Update a version's name and tag.
+ * @param {string} token - JWT authentication token
+ * @param {number} id - The version ID to update
+ * @param {Object} payload
+ * @param {string} payload.name - New version name
+ * @param {string|null} payload.tag - New tag, or null to clear
+ * @returns {Promise&lt;VersionResponse>} The updated version
+ * @throws {Error} Server error detail message on non-OK responses
+ */
+export async function updateVersion(token, id, payload) {
+    const res = await fetch(`${API_BASE}/api/versions/${id}`, {
+        method: "PATCH",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+        throw new Error(data?.detail || "Failed to update version");
+    }
+    return data;
+}
+
+/**
+ * Delete a saved version.
+ * @param {string} token - JWT authentication token
+ * @param {number} id - The version ID to delete
+ * @returns {Promise&lt;void>}
+ * @throws {Error} Server error detail message if not found or unauthorized
+ */
+export async function deleteVersion(token, id) {
+    const res = await fetch(`${API_BASE}/api/versions/${id}`, {
+        method: "DELETE",
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
+
+    if (!res.ok) {
+        let detail = "Failed to delete version";
+        try {
+            const data = await res.json();
+            detail = data?.detail || detail;
+        } catch {
+            // no body
+        }
+        throw new Error(detail);
+    }
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#deleteVersion">deleteVersion</a></li><li><a href="global.html#downloadExport">downloadExport</a></li><li><a href="global.html#executeBatch">executeBatch</a></li><li><a href="global.html#executePrompt">executePrompt</a></li><li><a href="global.html#getHealth">getHealth</a></li><li><a href="global.html#getTemplate">getTemplate</a></li><li><a href="global.html#getTemplates">getTemplates</a></li><li><a href="global.html#getVersion">getVersion</a></li><li><a href="global.html#getVersions">getVersions</a></li><li><a href="global.html#saveVersion">saveVersion</a></li><li><a href="global.html#updateVersion">updateVersion</a></li><li><a href="global.html#validateKey">validateKey</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Fri May 08 2026 20:50:30 GMT-0500 (Central Daylight Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

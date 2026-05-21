@@ -1,0 +1,73 @@
+import { useEffect, useState } from 'react'
+import { getVersions } from '../api/versionsApi'
+import './DiffVersionPicker.css'
+
+export default function DiffVersionPicker({ token, onCompare, refreshSignal = 0 }) {
+  const [versions, setVersions] = useState([])
+  const [selectedIds, setSelectedIds] = useState([])
+
+  async function loadVersions() {
+    try {
+      const data = await getVersions(token)
+      setVersions(data)
+      setSelectedIds((prev) => prev.filter((id) => data.some((v) => v.id === id)))
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  useEffect(() => {
+    loadVersions()
+  }, [token, refreshSignal])
+
+  function handleSelect(id) {
+    if (selectedIds.includes(id)) {
+      setSelectedIds(selectedIds.filter(s => s !== id))
+    } else if (selectedIds.length < 2) {
+      setSelectedIds([...selectedIds, id])
+    }
+  }
+
+  function handleCompare() {
+    const selected = versions.filter(v => selectedIds.includes(v.id))
+    selected.sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+    onCompare(selected[0], selected[1], versions.length)
+  }
+
+  return (
+    <div className="diff-picker">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h2>Compare Versions</h2>
+        <button className="refresh-btn" onClick={loadVersions}>
+          Refresh
+        </button>
+      </div>
+      {versions.length === 0 ? (
+        <p>No saved versions yet.</p>
+      ) : (
+        <ul className="diff-picker-list">
+          {versions.map((ver) => (
+            <li key={ver.id}>
+              <button
+                className={`diff-picker-btn ${selectedIds.includes(ver.id) ? 'selected' : ''}`}
+                onClick={() => handleSelect(ver.id)}
+              >
+                {ver.name}
+                <span className="version-date">
+                  {new Date(ver.created_at).toLocaleString()}
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      <button
+        className="compare-btn"
+        onClick={handleCompare}
+        disabled={selectedIds.length !== 2}
+      >
+        Compare
+      </button>
+    </div>
+  )
+}

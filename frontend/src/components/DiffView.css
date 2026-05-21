@@ -1,0 +1,38 @@
+.diff-container {
+  display: flex;
+  gap: 2rem;
+}
+
+.diff-column {
+  flex: 1;
+  padding: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+.diff-added {
+  background-color: #d4edda;
+  color: #155724;
+  border-radius: 3px;
+  padding: 0 2px;
+}
+
+.diff-removed {
+  background-color: #f8d7da;
+  color: #721c24;
+  border-radius: 3px;
+  padding: 0 2px;
+}
+
+.diff-response {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
+}
+
+.diff-blocked {
+  padding: 1rem;
+  color: #856404;
+  background-color: #fff3cd;
+  border-radius: 8px;
+}
