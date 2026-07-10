@@ -1,11 +1,10 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import "./Login.css";
 import { useNavigate } from "react-router-dom";
 import user_icon from "../assets/person.png";
 import email_icon from "../assets/email.png";
 import password_icon from "../assets/password.png";
-
-const API_BASE = "https://promptbox-9d83.onrender.com";
+import { API_BASE } from "../api/config";
 
 const Login = ({ onAuth }) => {
   const navigate = useNavigate();

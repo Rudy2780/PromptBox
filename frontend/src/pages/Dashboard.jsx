@@ -4,12 +4,12 @@ import PromptEditor from "../components/PromptEditor";
 import ResponseDisplay from "../components/ResponseDisplay";
 import SaveVersion from "../components/SaveVersion";
 import VersionSelector from "../components/VersionSelector";
-import DiffVersionPicker from "../components/DiffVerisonPicker";
+import DiffVersionPicker from "../components/DiffVersionPicker";
 import DiffView from "../components/DiffView";
 import ExportDropdown from "../components/ExportDropdown";
 import TemplateLibrary from '../components/TemplateLibrary'
 
-export default function DashBoard({ user, onLogout }) {
+export default function Dashboard({ user, onLogout }) {
   const [selectedModels, setSelectedModels] = useState(["gpt-4o"]);
   const [apiKeys, setApiKeys] = useState({ openai: "", gemini: "", anthropic: "" });
   const [isKeyValid, setIsKeyValid] = useState(false);

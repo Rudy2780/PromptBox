@@ -1,5 +1,3 @@
-import pytest
-
 def register_and_get_headers(client, email="searchuser@example.com", password="password123"):
     client.post("/auth/register", json={"email": email, "password": password})
     login_res = client.post("/auth/login", json={"email": email, "password": password})

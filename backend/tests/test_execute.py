@@ -3,11 +3,11 @@ Tests for POST /api/execute endpoint.
 All provider calls are mocked — no real API keys required.
 """
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from fastapi.testclient import TestClient
 
 from app.main import app
-from app.providers.exceptions import ProviderAuthError, ProviderError
+from app.providers.exceptions import ProviderAuthError
 
 client = TestClient(app)
 

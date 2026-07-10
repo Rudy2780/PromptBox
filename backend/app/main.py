@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import inspect, text
+# Side-effect imports: registering these models with Base.metadata so create_all builds their tables — do not remove
 from app.models import user
 from app.models import prompt_version
 from app.database import Base, ENGINE

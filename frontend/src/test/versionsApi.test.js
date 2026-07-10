@@ -17,7 +17,7 @@ describe("getVersions API helper", () => {
         await getVersions("fake-token");
 
         const calledUrl = fetch.mock.calls[0][0].toString();
-        expect(calledUrl).toBe("http://localhost:8000/api/versions/")
+        expect(calledUrl).toMatch(/\/api\/versions\/$/)
     });
 
     it("GETs /api/verions/?serach=foo when search is provided", async () => {
@@ -29,7 +29,7 @@ describe("getVersions API helper", () => {
         await getVersions("fake-token", "foo");
 
         const calledUrl = fetch.mock.calls[0][0].toString();
-        expect(calledUrl).toBe("http://localhost:8000/api/versions/?search=foo");
+        expect(calledUrl).toMatch(/\/api\/versions\/\?search=foo$/);
     });
 
     it("URL-encodes search strings with special characters", async () => {

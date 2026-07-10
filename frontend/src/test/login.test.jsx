@@ -51,6 +51,7 @@ describe("Login form", () => {
     await waitFor(() => {
       expect(screen.getByText("Password must be at least 8 characters")).toBeInTheDocument()
     })
+    expect(fetch).not.toHaveBeenCalled()
   })
 
   test("blocks submission when email field is empty", async () => {
@@ -67,5 +68,6 @@ describe("Login form", () => {
     await waitFor(() => {
       expect(screen.getByText("Email is required")).toBeInTheDocument()
     })
+    expect(fetch).not.toHaveBeenCalled()
   })
 })

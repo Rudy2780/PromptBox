@@ -2,7 +2,6 @@
 Tests for GET /api/export/:id endpoint.
 """
 import pytest
-from app.main import app
 
 def register_and_get_headers(client, email="exportuser@example.com", password="password123"):
     client.post("/auth/register", json={"email": email, "password": password})

@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { validateKey } from "../api/client";
 
+// Copy of the supported-model list; source of truth is backend/app/supported_models.py
 const MODEL_GROUPS = {
   openai: ["gpt-4o", "gpt-4o-mini"],
   anthropic: ["claude-opus-4-7", "claude-opus-4-6", "claude-sonnet-4-6", "claude-haiku-4-5-20251001"],

@@ -34,13 +34,9 @@ describe("PromptEditor", () => {
     );
 
     const promptInput = screen.getByLabelText(/prompt/i);
-    // const modelSelect = screen.getByLabelText(/model/i);
-    // const apiKeyInput = screen.getByLabelText(/openai api key/i);
     const submitButton = screen.getByRole("button", { name: /execute/i });
 
     fireEvent.change(promptInput, { target: { value: "Say hello" } });
-    // fireEvent.change(modelSelect, { target: { value: "gpt-4o" } });
-    // fireEvent.change(apiKeyInput, { target: { value: "sk-test" } });
 
     fireEvent.click(submitButton);
 

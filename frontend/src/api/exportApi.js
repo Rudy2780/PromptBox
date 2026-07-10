@@ -1,4 +1,4 @@
-const API_BASE = "https://promptbox-9d83.onrender.com";
+import { API_BASE } from "./config";
 
 
 /**
@@ -25,7 +25,7 @@ export async function downloadExport(token, versionId, format) {
             if (errorData.detail) {
                 errorMessage = errorData.detail;
             }
-        } catch (e) {
+        } catch {
             // response was not JSON, ignore
         }
         throw new Error(errorMessage);

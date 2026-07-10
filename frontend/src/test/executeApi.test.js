@@ -26,7 +26,7 @@ describe("executePrompt API helper", () => {
       apiKey: "sk-test",
     });
 
-    expect(fetch).toHaveBeenCalledWith("http://localhost:8000/api/execute", {
+    expect(fetch).toHaveBeenCalledWith(expect.stringMatching(/\/api\/execute$/), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

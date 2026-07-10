@@ -9,6 +9,6 @@ beforeEach(() => {
 
 test('getHealth calls the correct endpoint', async () => {
     const result = await getHealth()
-    expect(fetch).toHaveBeenCalledWith('http://localhost:8000/health')
+    expect(fetch).toHaveBeenCalledWith(expect.stringMatching(/\/health$/))
     expect(result).toEqual({ status: 'ok '})
 })

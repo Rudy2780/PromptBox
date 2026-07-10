@@ -1,4 +1,4 @@
-const API_BASE = "https://promptbox-9d83.onrender.com";
+import { API_BASE } from "./config";
 
 
 /**
