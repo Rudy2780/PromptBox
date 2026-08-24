@@ -13,8 +13,14 @@
  * the user's cookie. The backend enforces it in dependencies/auth.py.
  */
 
-export const API_BASE =
-  import.meta.env.VITE_API_BASE || "https://promptbox-9d83.onrender.com";
+// Configuration lives in ./config.js (introduced by the cleanup branch); this
+// module is the transport layer on top of it. Re-exported so call sites and
+// tests have one import for both.
+// Imported (not just re-exported) so it is bound in this module's scope for
+// apiFetch below, and re-exported so call sites have a single import.
+import { API_BASE } from "./config.js";
+
+export { API_BASE };
 
 export const CSRF_HEADER = "X-Requested-With";
 export const CSRF_VALUE = "PromptBox";

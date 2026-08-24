@@ -3,9 +3,9 @@ Tests for POST /api/execute endpoint.
 All provider calls are mocked — no real API keys required.
 """
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
-from app.providers.exceptions import ProviderAuthError, ProviderError
+from app.providers.exceptions import ProviderAuthError
 
 # `authed_client` comes from conftest.py. /api/execute now requires
 # authentication, so these tests act as a signed-in user.

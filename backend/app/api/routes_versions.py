@@ -1,5 +1,5 @@
 from typing import List, Optional
-from fastapi import APIRouter, Depends, status, HTTPException, Query
+from fastapi import APIRouter, Depends, status, Query
 from sqlalchemy import or_, func
 from sqlalchemy.orm import Session
 
@@ -8,6 +8,7 @@ from app.dependencies.auth import get_current_user
 from app.models.user import UserInfo
 from app.models.prompt_version import PromptVersion
 from app.schemas.version_schema import VersionCreateRequest, VersionResponse, VersionUpdateRequest
+from app.services.version_service import get_owned_version_or_404
 
 router = APIRouter(prefix="/api/versions", tags=["versions"])
 
@@ -56,10 +57,7 @@ def get_version(
     user: UserInfo = Depends(get_current_user),
     db: Session = Depends(get_db)
 ) -> VersionResponse:
-    version = db.query(PromptVersion).filter(PromptVersion.user_id == user.id, PromptVersion.id == version_id).first()
-    if not version:
-        raise HTTPException(status_code=404, detail="Version not found")
-    return version
+    return get_owned_version_or_404(db, user, version_id)
 
 
 @router.patch("/{version_id}", response_model=VersionResponse)
@@ -69,12 +67,7 @@ def update_version(
     user: UserInfo = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> VersionResponse:
-    version = db.query(PromptVersion).filter(
-        PromptVersion.user_id == user.id,
-        PromptVersion.id == version_id,
-    ).first()
-    if not version:
-        raise HTTPException(status_code=404, detail="Version not found")
+    version = get_owned_version_or_404(db, user, version_id)
 
     version.name = body.name
     version.tag = body.tag
@@ -89,12 +82,7 @@ def delete_version(
     user: UserInfo = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> None:
-    version = db.query(PromptVersion).filter(
-        PromptVersion.user_id == user.id,
-        PromptVersion.id == version_id,
-    ).first()
-    if not version:
-        raise HTTPException(status_code=404, detail="Version not found")
+    version = get_owned_version_or_404(db, user, version_id)
 
     db.delete(version)
     db.commit()

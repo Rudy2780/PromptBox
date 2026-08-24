@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { executePrompt } from "../api/executeApi";
-import { API_BASE } from "../api/http";
 
 global.fetch = vi.fn();
 
@@ -27,7 +26,7 @@ describe("executePrompt API helper", () => {
       apiKey: "sk-test",
     });
 
-    expect(fetch).toHaveBeenCalledWith(`${API_BASE}/api/execute`, {
+    expect(fetch).toHaveBeenCalledWith(expect.stringMatching(/\/api\/execute$/), {
       method: "POST",
       credentials: "include",
       headers: {

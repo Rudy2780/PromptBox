@@ -6,6 +6,7 @@ from app.database import get_db
 from app.dependencies.auth import get_current_user
 from app.models.user import UserInfo
 from app.models.prompt_version import PromptVersion
+from app.services.version_service import get_owned_version_or_404
 
 router = APIRouter(prefix="/api/export", tags=["export"])
 
@@ -38,14 +39,9 @@ def export_version(
     user: UserInfo = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    version = db.query(PromptVersion).filter(
-        PromptVersion.user_id == user.id, 
-        PromptVersion.id == version_id
-    ).first()
-    
-    if not version:
-        raise HTTPException(status_code=404, detail="Version not found")
-        
+    version = get_owned_version_or_404(db, user, version_id)
+
+
     if format == "txt":
         content = serialize_txt(version)
         media_type = "text/plain"

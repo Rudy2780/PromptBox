@@ -37,22 +37,10 @@ async def test_openai_key(api_key: str) -> bool:
     except openai.AuthenticationError:
         return False
 
-async def test_anthropic_key(api_key: str) -> bool:
-    try:
-        client = anthropic.Anthropic(api_key=api_key)
-        client.messages.create(
-            model="claude-sonnet-4-20250514",
-            max_tokens=1,
-            messages=[{"role": "user", "content": "hi"}]
-        )
-        return True
-    except anthropic.AuthenticationError:
-        return False
-    
 async def test_gemini_key(api_key: str) -> bool:
     try:
         client = genai.Client(api_key=api_key)
-        response = client.models.list()
+        client.models.list()
         return True
     except Exception:
         return False
@@ -66,9 +54,5 @@ async def test_anthropic_key(api_key: str) -> bool:
             messages=[{"role": "user", "content": "hi"}]
         )
         return True
-    except anthropic.AuthenticationError as e:
-        print(f"Anthropic auth error: {e}")
-        return False
-    except Exception as e:
-        print(f"Anthropic other error: {type(e).__name__}: {e}")
+    except Exception:
         return False

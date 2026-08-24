@@ -4,12 +4,12 @@ import PromptEditor from "../components/PromptEditor";
 import ResponseDisplay from "../components/ResponseDisplay";
 import SaveVersion from "../components/SaveVersion";
 import VersionSelector from "../components/VersionSelector";
-import DiffVersionPicker from "../components/DiffVerisonPicker";
+import DiffVersionPicker from "../components/DiffVersionPicker";
 import DiffView from "../components/DiffView";
 import ExportDropdown from "../components/ExportDropdown";
 import TemplateLibrary from '../components/TemplateLibrary'
 
-export default function DashBoard({ user, onLogout }) {
+export default function Dashboard({ user, onLogout }) {
   // A guest has no session, so every authenticated call would 401. Rather than
   // rendering panels that silently fail (or, as before, vanish with no
   // explanation), guests get the one thing that genuinely works unauthenticated

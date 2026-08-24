@@ -6,25 +6,9 @@ from app.dependencies.auth import get_current_user
 from app.models.user import UserInfo
 from app.rate_limit import ip_key, limiter, user_key
 from app.services.llm_service import test_provider_key
+from app.supported_models import SUPPORTED_MODELS
 
 router = APIRouter()
-
-SUPPORTED_MODELS = {
-    "openai": [
-        "gpt-4o",
-        "gpt-4o-mini",
-        ], 
-    "anthropic": [
-        "claude-opus-4-7",
-        "claude-opus-4-6",
-        "claude-sonnet-4-6",
-        "claude-haiku-4-5-20251001",
-    ],
-    "gemini": [
-        "gemini-2.5-flash",
-        "gemini-2.5-pro"
-    ]
-}
 
 class ValidateKeyRequest(BaseModel):
     provider: str

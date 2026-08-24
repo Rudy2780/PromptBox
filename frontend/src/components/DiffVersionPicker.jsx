@@ -11,8 +11,8 @@ export default function DiffVersionPicker({ onCompare, refreshSignal = 0 }) {
       const data = await getVersions()
       setVersions(data)
       setSelectedIds((prev) => prev.filter((id) => data.some((v) => v.id === id)))
-    } catch (err) {
-      console.error(err)
+    } catch {
+      // error intentionally swallowed: the list simply stays as-is on a failed load
     }
   }
 

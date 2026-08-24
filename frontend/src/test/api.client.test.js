@@ -1,6 +1,5 @@
 import { beforeEach, expect } from 'vitest'
 import { getHealth } from '../api/client'
-import { API_BASE } from '../api/http'
 
 beforeEach(() => {
     global.fetch = vi.fn(() =>
@@ -10,10 +9,11 @@ beforeEach(() => {
 
 test('getHealth calls the correct endpoint', async () => {
     const result = await getHealth()
-    // URL is derived from API_BASE rather than hardcoded, so the assertion
-    // cannot drift out of sync with the source the way it previously had.
+    // Matched on path only: pinning the host made this assertion drift out of
+    // sync with the source once already, and deriving it from API_BASE would
+    // only be comparing the constant against itself.
     expect(fetch).toHaveBeenCalledWith(
-        `${API_BASE}/health`,
+        expect.stringMatching(/\/health$/),
         expect.objectContaining({ credentials: 'include' })
     )
     expect(result).toEqual({ status: 'ok '})

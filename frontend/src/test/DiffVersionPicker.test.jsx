@@ -1,6 +1,6 @@
 import { render, waitFor } from '@testing-library/react'
 import { describe, test, expect, vi } from 'vitest'
-import DiffVersionPicker from '../components/DiffVerisonPicker'
+import DiffVersionPicker from '../components/DiffVersionPicker'
 import * as versionsApi from '../api/versionsApi'
 
 vi.mock('../api/versionsApi', () => ({

@@ -1,5 +1,3 @@
-import pytest
-
 def register_and_get_headers(client, email="searchuser@example.com", password="password123"):
     """Register + log in, returning the headers callers must send.
 

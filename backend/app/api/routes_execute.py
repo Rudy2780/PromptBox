@@ -14,17 +14,13 @@ from app.providers.exceptions import ProviderAuthError, ProviderError
 from app.providers.openai_provider import OpenAIProvider
 from app.providers.gemini_provider import GeminiProvider
 from app.providers.anthropic_provider import AnthropicProvider
+from app.supported_models import (
+    SUPPORTED_OPENAI_MODELS,
+    SUPPORTED_GEMINI_MODELS,
+    SUPPORTED_ANTHROPIC_MODELS,
+)
 
 router = APIRouter()
-
-SUPPORTED_OPENAI_MODELS = {"gpt-4o", "gpt-4o-mini"}
-SUPPORTED_GEMINI_MODELS = {"gemini-2.5-flash", "gemini-2.5-pro"}
-SUPPORTED_ANTHROPIC_MODELS = {
-    "claude-opus-4-7",
-    "claude-sonnet-4-6",
-    "claude-opus-4-6",
-    "claude-haiku-4-5-20251001",
-}
 
 
 def _get_provider(model: str, api_key: str):

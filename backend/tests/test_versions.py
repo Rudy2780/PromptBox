@@ -2,8 +2,6 @@
 Tests for POST /api/versions endpoint
 """
 
-import pytest
-
 def register_and_get_headers(client, email="versionuser@example.com", password="password123"):
     """Register + log in, returning the headers callers must send.
 
