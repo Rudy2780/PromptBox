@@ -7,52 +7,19 @@ test_provider_key routes to the correct specific validation function
 each provider function uses the cheapests API call to check it the key is valid
 Returns True if the key is valid, False if not
 
+This module no longer imports the vendor SDKs. It previously built its own
+openai.OpenAI / anthropic.Anthropic / genai.Client instances, duplicating what
+app/providers/* already does, so each provider had two client-construction
+paths that could (and did) drift apart. Validation now goes through the same
+adapters that execution uses.
 '''
 
+from app.providers.registry import provider_for_name
 
 
-import openai
-import anthropic
-from google import genai
-
-async def test_provider_key(provider: str, api_key: str) -> bool: 
+async def test_provider_key(provider: str, api_key: str) -> bool:
     '''Makes a lightweight API call to provider to verify the status of the key'''
-    try:
-        if provider == "openai":
-            return await test_openai_key(api_key)
-        elif provider == "anthropic":
-            return await test_anthropic_key(api_key)
-        elif provider == "gemini": 
-            return await test_gemini_key(api_key)
-        else:
-            return False
-    except Exception:
+    adapter = provider_for_name(provider, api_key)
+    if adapter is None:
         return False
-    
-async def test_openai_key(api_key: str) -> bool:
-    try:
-        client = openai.OpenAI(api_key=api_key)
-        client.models.list()
-        return True
-    except openai.AuthenticationError:
-        return False
-
-async def test_gemini_key(api_key: str) -> bool:
-    try:
-        client = genai.Client(api_key=api_key)
-        client.models.list()
-        return True
-    except Exception:
-        return False
-
-async def test_anthropic_key(api_key: str) -> bool:
-    try:
-        client = anthropic.Anthropic(api_key=api_key)
-        client.messages.create(
-            model="claude-haiku-4-5-20251001",
-            max_tokens=1,
-            messages=[{"role": "user", "content": "hi"}]
-        )
-        return True
-    except Exception:
-        return False
+    return adapter.validate_key()

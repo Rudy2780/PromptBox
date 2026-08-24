@@ -1,9 +1,11 @@
 """Tests for the auth, rate limiting and input bounds added to the LLM endpoints.
 
-These three endpoints were previously unauthenticated and unbounded on a public
-URL: /api/validate-key answered "is this stolen key live?" for three providers,
-/api/execute relayed arbitrary LLM traffic, and /api/prompt looped an uncapped
-model list of blocking calls.
+These endpoints were previously unauthenticated and unbounded on a public URL:
+/api/validate-key answered "is this stolen key live?" for three providers, and
+/api/prompt looped an uncapped model list of blocking calls.
+
+(The former /api/execute has been removed -- it was unreachable from the app,
+since the dashboard always sends a models array.)
 """
 
 from unittest.mock import AsyncMock, patch
@@ -13,7 +15,6 @@ import pytest
 from app.api import routes_execute
 from app.schemas.execute_schema import MAX_MODELS_PER_REQUEST, MAX_PROMPT_CHARS
 
-EXECUTE_PAYLOAD = {"prompt": "Say hello", "model": "gpt-4o", "api_key": "sk-test-key"}
 BATCH_PAYLOAD = {
     "prompt": "Say hello",
     "models": ["gpt-4o"],
@@ -45,7 +46,6 @@ def fake_providers(monkeypatch):
 @pytest.mark.parametrize(
     "path,payload",
     [
-        ("/api/execute", EXECUTE_PAYLOAD),
         ("/api/prompt", BATCH_PAYLOAD),
         ("/api/validate-key", VALIDATE_PAYLOAD),
     ],
@@ -61,7 +61,6 @@ def test_endpoint_rejects_unauthenticated_request(client, path, payload):
 @pytest.mark.parametrize(
     "path,payload",
     [
-        ("/api/execute", EXECUTE_PAYLOAD),
         ("/api/prompt", BATCH_PAYLOAD),
         ("/api/validate-key", VALIDATE_PAYLOAD),
     ],
@@ -72,8 +71,8 @@ def test_endpoint_rejects_garbage_token(client, path, payload):
     assert res.status_code == 401
 
 
-def test_execute_allows_authenticated_request(authed_client, fake_providers):
-    res = authed_client.post("/api/execute", json=EXECUTE_PAYLOAD)
+def test_prompt_allows_authenticated_request(authed_client, fake_providers):
+    res = authed_client.post("/api/prompt", json=BATCH_PAYLOAD)
     assert res.status_code == 200
 
 
@@ -83,14 +82,14 @@ def test_execute_allows_authenticated_request(authed_client, fake_providers):
 
 
 def test_prompt_over_length_limit_rejected(authed_client):
-    payload = {**EXECUTE_PAYLOAD, "prompt": "x" * (MAX_PROMPT_CHARS + 1)}
-    res = authed_client.post("/api/execute", json=payload)
+    payload = {**BATCH_PAYLOAD, "prompt": "x" * (MAX_PROMPT_CHARS + 1)}
+    res = authed_client.post("/api/prompt", json=payload)
     assert res.status_code == 422
 
 
 def test_prompt_at_length_limit_accepted(authed_client, fake_providers):
-    payload = {**EXECUTE_PAYLOAD, "prompt": "x" * MAX_PROMPT_CHARS}
-    res = authed_client.post("/api/execute", json=payload)
+    payload = {**BATCH_PAYLOAD, "prompt": "x" * MAX_PROMPT_CHARS}
+    res = authed_client.post("/api/prompt", json=payload)
     assert res.status_code == 200
 
 
@@ -150,9 +149,9 @@ def test_validate_key_is_rate_limited(authed_client, rate_limited):
     assert statuses[-1] == 429
 
 
-def test_execute_is_rate_limited(authed_client, rate_limited, fake_providers):
+def test_prompt_is_rate_limited(authed_client, rate_limited, fake_providers):
     statuses = [
-        authed_client.post("/api/execute", json=EXECUTE_PAYLOAD).status_code
+        authed_client.post("/api/prompt", json=BATCH_PAYLOAD).status_code
         for _ in range(40)
     ]
     assert 429 in statuses, f"never rate limited: {statuses}"
@@ -160,7 +159,7 @@ def test_execute_is_rate_limited(authed_client, rate_limited, fake_providers):
 
 def test_rate_limit_response_is_429_not_500(authed_client, rate_limited, fake_providers):
     for _ in range(40):
-        res = authed_client.post("/api/execute", json=EXECUTE_PAYLOAD)
+        res = authed_client.post("/api/prompt", json=BATCH_PAYLOAD)
         if res.status_code == 429:
             break
     assert res.status_code == 429

@@ -16,14 +16,6 @@ def _dedupe_preserving_order(models: List[str]) -> List[str]:
     return seen
 
 
-class ExecuteRequest(BaseModel):
-    # No min_length: an empty or whitespace-only prompt is rejected in the
-    # route with a 400 and a readable message, which the API already promises.
-    prompt: str = Field(max_length=MAX_PROMPT_CHARS)
-    model: str
-    api_key: str
-
-
 class ExecuteResponse(BaseModel):
     model: str
     response_text: str

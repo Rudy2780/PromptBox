@@ -1,7 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import ModelSelector from '../components/ModelSelector'
 import { validateKey } from '../api/client'
-import { expect, expectTypeOf, vi } from 'vitest'
+import { expect, vi } from 'vitest'
 import { useState } from 'react'
 
 vi.mock('../api/client', () => ({

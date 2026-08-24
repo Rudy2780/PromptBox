@@ -4,19 +4,35 @@ def test_register_valid(client):
         "password": "password123"
     })
     assert res.status_code == 201
-    assert res.json()["email"] == "testuser@example.com"
+    # The response no longer echoes the address or confirms creation: the same
+    # body is returned for a taken address, so it cannot be used to enumerate.
+    assert res.json()["status"] == "ok"
+    assert "testuser@example.com" not in str(res.json())
 
 
 def test_register_duplicate_email(client):
-    client.post("/auth/register", json={
+    """A second registration is accepted-looking but creates nothing.
+
+    This used to return 409 "Email already registered", which answered
+    "is this person a user?" for anyone who asked.
+    """
+    first = client.post("/auth/register", json={
         "email": "duplicate@example.com",
         "password": "password123"
     })
-    res = client.post("/auth/register", json={
+    second = client.post("/auth/register", json={
+        "email": "duplicate@example.com",
+        "password": "different-password"
+    })
+    assert second.status_code == first.status_code == 201
+    assert second.json() == first.json()
+
+    # The original credentials still work, i.e. the account was not overwritten.
+    login = client.post("/auth/login", json={
         "email": "duplicate@example.com",
         "password": "password123"
     })
-    assert res.status_code == 409
+    assert login.status_code == 200
 
 
 def test_register_short_password(client):

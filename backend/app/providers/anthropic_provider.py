@@ -2,18 +2,17 @@ import time
 from typing import Tuple
 
 from .exceptions import ProviderAuthError, ProviderError
+from .llm_provider_base import LLMProvider
 
 try:
     import anthropic
 except Exception:
     anthropic = None
     
-class AnthropicProvider:
+class AnthropicProvider(LLMProvider):
     
-    def __init__(self, api_key: str, model: str) -> None:
-        self.api_key = api_key
-        self.model = model
-        
+    VALIDATION_MODEL = "claude-haiku-4-5-20251001"
+
     def run_prompt(self, prompt: str) -> Tuple[str, float]:
         
         if anthropic is None:
@@ -48,3 +47,18 @@ class AnthropicProvider:
         
         latency = time.perf_counter() - start
         return str(message_content), float(latency)
+
+    def validate_key(self) -> bool:
+        """Anthropic has no list-models call on the messages client, so send the
+        smallest possible completion (one token, cheapest model)."""
+        if anthropic is None:
+            return False
+        try:
+            anthropic.Anthropic(api_key=self.api_key).messages.create(
+                model=self.VALIDATION_MODEL,
+                max_tokens=1,
+                messages=[{"role": "user", "content": "hi"}],
+            )
+            return True
+        except Exception:
+            return False

@@ -8,22 +8,27 @@ export default function TemplateLibrary({ onSelectTemplate, currentPrompt }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  async function loadTemplates() {
-    try {
-      setLoading(true)
-      const cat = category === 'all' ? null : category
-      const data = await getTemplates(cat)
-      setTemplates(data)
-      setError(null)
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
-    }
-  }
-
   useEffect(() => {
-    loadTemplates()
+    let cancelled = false
+
+    ;(async () => {
+      try {
+        setLoading(true)
+        const cat = category === 'all' ? null : category
+        const data = await getTemplates(cat)
+        if (cancelled) return
+        setTemplates(data)
+        setError(null)
+      } catch (err) {
+        if (!cancelled) setError(err.message)
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    })()
+
+    return () => {
+      cancelled = true
+    }
   }, [category])
 
   function handleSelect(content) {

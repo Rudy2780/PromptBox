@@ -61,16 +61,19 @@ def test_real_auth_failure_still_maps_to_provider_auth_error():
 
 def test_generic_anthropic_failure_returns_502_not_401(authed_client):
     """End to end: the route maps the provider error to 502."""
-    with patch("app.api.routes_execute.AnthropicProvider") as MockProvider:
-        MockProvider.return_value.run_prompt.side_effect = ProviderError(
-            "Anthropic provider error: rate limit exceeded"
-        )
+    provider_cls = MagicMock()
+    provider_cls.return_value.run_prompt.side_effect = ProviderError(
+        "Anthropic provider error: rate limit exceeded"
+    )
+    with patch.dict(
+        "app.providers.registry.PROVIDER_CLASSES", {"anthropic": provider_cls}
+    ):
         res = authed_client.post(
-            "/api/execute",
+            "/api/prompt",
             json={
                 "prompt": "hello",
-                "model": "claude-opus-4-7",
-                "api_key": "sk-ant-valid",
+                "models": ["claude-opus-4-7"],
+                "api_keys": {"anthropic": "sk-ant-valid"},
             },
         )
 
@@ -80,16 +83,19 @@ def test_generic_anthropic_failure_returns_502_not_401(authed_client):
 
 
 def test_anthropic_auth_failure_still_returns_401(authed_client):
-    with patch("app.api.routes_execute.AnthropicProvider") as MockProvider:
-        MockProvider.return_value.run_prompt.side_effect = ProviderAuthError(
-            "Invalid Anthropic API key"
-        )
+    provider_cls = MagicMock()
+    provider_cls.return_value.run_prompt.side_effect = ProviderAuthError(
+        "Invalid Anthropic API key"
+    )
+    with patch.dict(
+        "app.providers.registry.PROVIDER_CLASSES", {"anthropic": provider_cls}
+    ):
         res = authed_client.post(
-            "/api/execute",
+            "/api/prompt",
             json={
                 "prompt": "hello",
-                "model": "claude-opus-4-7",
-                "api_key": "sk-ant-bad",
+                "models": ["claude-opus-4-7"],
+                "api_keys": {"anthropic": "sk-ant-bad"},
             },
         )
 

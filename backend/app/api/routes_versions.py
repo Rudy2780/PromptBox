@@ -12,6 +12,22 @@ from app.services.version_service import get_owned_version_or_404
 
 router = APIRouter(prefix="/api/versions", tags=["versions"])
 
+LIKE_ESCAPE_CHAR = "\\"
+
+
+def _escape_like(value: str) -> str:
+    """Neutralise LIKE metacharacters in user-supplied search text.
+
+    Not an injection fix -- the value is already a bound parameter -- but
+    without it a search for "%" matches every row and "_" matches any single
+    character, so the search silently does the wrong thing. The escape
+    character itself must be escaped first.
+    """
+    for char in (LIKE_ESCAPE_CHAR, "%", "_"):
+        value = value.replace(char, LIKE_ESCAPE_CHAR + char)
+    return value
+
+
 @router.post("/", response_model=VersionResponse, status_code=status.HTTP_201_CREATED)
 def save_version(
     body: VersionCreateRequest,
@@ -42,10 +58,10 @@ def get_versions(
     query = db.query(PromptVersion).filter(PromptVersion.user_id == user.id)
     
     if search:
-        pattern = f"%{search.lower()}%"
+        pattern = f"%{_escape_like(search.lower())}%"
         filters = [
-            func.lower(PromptVersion.name).like(pattern),
-            func.lower(PromptVersion.tag).like(pattern),
+            func.lower(PromptVersion.name).like(pattern, escape="\\"),
+            func.lower(PromptVersion.tag).like(pattern, escape="\\"),
         ]
         query = query.filter(or_(*filters))
     

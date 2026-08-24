@@ -1,13 +1,11 @@
 import { useState } from "react";
-import { executeBatch, executePrompt } from "../api/executeApi";
+import { executeBatch } from "../api/executeApi";
 
 export default function PromptEditor({
   models,
-  model, // legacy single model
   apiKey,
   isKeyValid,
   onResults,
-  onResult, // legacy single result
   onError,
   prompt,
   setPrompt,
@@ -19,18 +17,15 @@ export default function PromptEditor({
     setIsLoading(true);
 
     const hasModels = Array.isArray(models) && models.length > 0;
-    const singleModel = model || (hasModels ? models[0] : null);
 
     try {
-      if (hasModels) {
-        const results = await executeBatch({ prompt, models, apiKeys: apiKey });
-        onResults?.(results);
-      } else if (singleModel) {
-        const result = await executePrompt({ prompt, model: singleModel, apiKey });
-        onResult?.(result);
-      } else {
+      if (!hasModels) {
         throw new Error("No model selected");
       }
+      // /api/prompt handles one model as well as several, so there is a single
+      // request path. The former /api/execute endpoint has been removed.
+      const results = await executeBatch({ prompt, models, apiKeys: apiKey });
+      onResults?.(results);
     } catch (error) {
       onError?.(error.message || "Execution failed.");
     } finally {
@@ -39,10 +34,7 @@ export default function PromptEditor({
   };
 
   const isDisabled =
-    !isKeyValid ||
-    !prompt ||
-    isLoading ||
-    (!model && (!models || models.length === 0));
+    !isKeyValid || !prompt || isLoading || !models || models.length === 0;
 
   return (
     <div className="prompt-editor textarea">

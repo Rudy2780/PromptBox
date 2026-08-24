@@ -2,7 +2,6 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { expect, vi } from 'vitest'
 import VersionSelector from '../components/VersionSelector'
 import * as versionsApi from '../api/versionsApi'
-import { version } from 'react'
 
 vi.mock('../api/versionsApi', () => ({
   getVersions: vi.fn(),

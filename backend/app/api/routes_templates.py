@@ -15,7 +15,9 @@ class TemplateResponse(BaseModel):
     category: str
     content: str
 
-model_config = {"from_attributes": True}
+    # Was declared at module scope, where it configured nothing -- it has to be
+    # a class attribute to apply to the model.
+    model_config = {"from_attributes": True}
 
 @router.get("/", response_model=List[TemplateResponse])
 def get_templates(

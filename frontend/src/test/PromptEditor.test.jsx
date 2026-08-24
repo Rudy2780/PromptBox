@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, test } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import PromptEditor from "../components/PromptEditor";
 import * as executeApi from "../api/executeApi";
@@ -11,24 +11,22 @@ function PromptEditorWrapper(props) {
 }
 
 describe("PromptEditor", () => {
-  it("calls executePrompt with the correct arguments and shows loading state", async () => {
+  it("calls executeBatch with the correct arguments and shows loading state", async () => {
     const executeSpy = vi
-      .spyOn(executeApi, "executePrompt")
-      .mockResolvedValue({
-        model: "gpt-4o",
-        response_text: "Hello!",
-        latency: 0.5,
-      });
+      .spyOn(executeApi, "executeBatch")
+      .mockResolvedValue([
+        { model: "gpt-4o", response_text: "Hello!", latency: 0.5 },
+      ]);
 
     const handleResult = vi.fn();
     const handleError = vi.fn();
 
     render(
-      <PromptEditorWrapper 
-      model="gpt-4o"
-      apiKey="sk-test"
+      <PromptEditorWrapper
+      models={["gpt-4o"]}
+      apiKey={{ openai: "sk-test" }}
       isKeyValid={true}
-      onResult={handleResult}
+      onResults={handleResult}
       onError={handleError}
       />
     );
@@ -45,23 +43,21 @@ describe("PromptEditor", () => {
     await waitFor(() => {
       expect(executeSpy).toHaveBeenCalledWith({
         prompt: "Say hello",
-        model: "gpt-4o",
-        apiKey: "sk-test",
+        models: ["gpt-4o"],
+        apiKeys: { openai: "sk-test" },
       });
     });
 
     expect(handleError).toHaveBeenCalledWith(null);
-    expect(handleResult).toHaveBeenCalledWith({
-      model: "gpt-4o",
-      response_text: "Hello!",
-      latency: 0.5,
-    });
+    expect(handleResult).toHaveBeenCalledWith([
+      { model: "gpt-4o", response_text: "Hello!", latency: 0.5 },
+    ]);
 
     expect(submitButton.disabled).toBe(false);
   });
 
-  it("surfaces errors from executePrompt via onError", async () => {
-    vi.spyOn(executeApi, "executePrompt").mockRejectedValue(
+  it("surfaces errors from executeBatch via onError", async () => {
+    vi.spyOn(executeApi, "executeBatch").mockRejectedValue(
       new Error("Bad request")
     );
 
@@ -69,11 +65,11 @@ describe("PromptEditor", () => {
     const handleError = vi.fn();
 
     render(
-      <PromptEditorWrapper 
-      model="gpt-4o"
-      apiKey="sk-test"
+      <PromptEditorWrapper
+      models={["gpt-4o"]}
+      apiKey={{ openai: "sk-test" }}
       isKeyValid={true}
-      onResult={handleResult}
+      onResults={handleResult}
       onError={handleError}
       />
     );

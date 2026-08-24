@@ -5,20 +5,31 @@ import './DiffVersionPicker.css'
 export default function DiffVersionPicker({ onCompare, refreshSignal = 0 }) {
   const [versions, setVersions] = useState([])
   const [selectedIds, setSelectedIds] = useState([])
-
-  async function loadVersions() {
-    try {
-      const data = await getVersions()
-      setVersions(data)
-      setSelectedIds((prev) => prev.filter((id) => data.some((v) => v.id === id)))
-    } catch {
-      // error intentionally swallowed: the list simply stays as-is on a failed load
-    }
-  }
+  // Bumped by the Refresh button; the effect below is the only loader.
+  const [reloadToken, setReloadToken] = useState(0)
 
   useEffect(() => {
-    loadVersions()
-  }, [refreshSignal])
+    // The async work lives inside the effect rather than in a function called
+    // from it, so no setState runs synchronously during the effect body. The
+    // cancelled flag also stops a late response from setting state after the
+    // component has unmounted.
+    let cancelled = false
+
+    ;(async () => {
+      try {
+        const data = await getVersions()
+        if (cancelled) return
+        setVersions(data)
+        setSelectedIds((prev) => prev.filter((id) => data.some((v) => v.id === id)))
+      } catch {
+        // error intentionally swallowed: the list simply stays as-is on a failed load
+      }
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [refreshSignal, reloadToken])
 
   function handleSelect(id) {
     if (selectedIds.includes(id)) {
@@ -38,7 +49,7 @@ export default function DiffVersionPicker({ onCompare, refreshSignal = 0 }) {
     <div className="diff-picker">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h2>Compare Versions</h2>
-        <button className="refresh-btn" onClick={loadVersions}>
+        <button className="refresh-btn" onClick={() => setReloadToken((n) => n + 1)}>
           Refresh
         </button>
       </div>

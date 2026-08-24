@@ -2,6 +2,7 @@ import time
 from typing import Tuple
 
 from .exceptions import ProviderAuthError, ProviderError
+from .llm_provider_base import LLMProvider
 
 try:  # Optional dependency; tests mock this provider.
     import openai  # type: ignore[import]
@@ -9,12 +10,10 @@ except Exception:  # pragma: no cover - handled at runtime if actually used
     openai = None  # type: ignore[assignment]
 
 
-class OpenAIProvider:
+class OpenAIProvider(LLMProvider):
     """Concrete provider for OpenAI chat models."""
 
-    def __init__(self, api_key: str, model: str) -> None:
-        self.api_key = api_key
-        self.model = model
+    VALIDATION_MODEL = "gpt-4o-mini"
 
     def run_prompt(self, prompt: str) -> Tuple[str, float]:
         """
@@ -56,3 +55,12 @@ class OpenAIProvider:
         latency = time.perf_counter() - start
         return str(message_content), float(latency)
 
+    def validate_key(self) -> bool:
+        """Cheapest possible call: list models rather than generate anything."""
+        if openai is None:
+            return False
+        try:
+            openai.OpenAI(api_key=self.api_key).models.list()
+            return True
+        except Exception:
+            return False

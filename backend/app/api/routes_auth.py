@@ -1,6 +1,7 @@
 import re
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 
+from app.config import settings
 from app.database import get_db
 from app.dependencies.auth import get_current_user
 from app.models.user import UserInfo
@@ -12,7 +13,8 @@ from app.services.auth_service import (
     get_user_by_email,
     set_session_cookie,
 )
-from app.utils.security import verify_password
+from app.rate_limit import ip_key, limiter
+from app.utils.security import hash_password, verify_password
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -26,17 +28,37 @@ def _validate(creds: Credentials):
         raise HTTPException(status_code=400, detail="Password must be at least 8 characters")
 
 
+# Returned verbatim whether or not the address was already taken, so the
+# response cannot be used to enumerate registered accounts.
+REGISTRATION_ACCEPTED = {
+    "status": "ok",
+    "detail": (
+        "If that email address is available, your account has been created. "
+        "You can now sign in."
+    ),
+}
+
+
 @router.post("/register", status_code=status.HTTP_201_CREATED)
-def register(creds: Credentials, db=Depends(get_db)):
+@limiter.limit(settings.REGISTER_RATE_LIMIT_PER_IP, key_func=ip_key)
+def register(creds: Credentials, request: Request, response: Response, db=Depends(get_db)):
     _validate(creds)
+
     if get_user_by_email(db, creds.email):
-        raise HTTPException(status_code=409, detail="Email already registered")
+        # Previously a 409 "Email already registered", which let anyone test an
+        # address for membership. Burn an equivalent amount of time hashing so
+        # the fast path and the slow path are not distinguishable by latency
+        # either -- bcrypt at cost 12 is the dominant cost of a real signup.
+        hash_password(creds.password)
+        return REGISTRATION_ACCEPTED
+
     create_user(db, creds.email, creds.password)
-    return {"status": "created", "email": creds.email}
+    return REGISTRATION_ACCEPTED
 
 
 @router.post("/login")
-def login(creds: Credentials, response: Response, db=Depends(get_db)):
+@limiter.limit(settings.LOGIN_RATE_LIMIT_PER_IP, key_func=ip_key)
+def login(creds: Credentials, request: Request, response: Response, db=Depends(get_db)):
     _validate(creds)
     user = get_user_by_email(db, creds.email)
     if not user:

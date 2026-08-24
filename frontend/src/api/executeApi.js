@@ -1,23 +1,6 @@
 import { apiJson } from "./http.js";
 
 /**
- * Execute a single prompt against one LLM model. Requires an authenticated session.
- * @param {Object} params
- * @param {string} params.prompt - The prompt text to send
- * @param {string} params.model - Model identifier (e.g. "gpt-4o", "gemini-2.5-flash")
- * @param {string} params.apiKey - The provider API key
- * @returns {Promise<{model: string, response_text: string, latency: number}>} Model response with latency in seconds
- * @throws {Error} Server error detail message on non-OK responses
- */
-export async function executePrompt({ prompt, model, apiKey }) {
-  return apiJson("/api/execute", {
-    method: "POST",
-    body: { prompt, model, api_key: apiKey },
-    errorMessage: "Execution failed.",
-  });
-}
-
-/**
  * Execute a prompt against multiple models in a single batch request.
  * Requires an authenticated session. The server accepts at most 4 distinct
  * models per request and deduplicates the list.

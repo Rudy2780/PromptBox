@@ -2,6 +2,7 @@ import time
 from typing import Tuple
 
 from .exceptions import ProviderAuthError, ProviderError
+from .llm_provider_base import LLMProvider
 
 try:  # Optional dependency; tests mock this provider.
     from google import genai  # type: ignore[import]
@@ -9,12 +10,10 @@ except Exception:  # pragma: no cover - handled at runtime if actually used
     genai = None  # type: ignore[assignment]
 
 
-class GeminiProvider:
+class GeminiProvider(LLMProvider):
     """Concrete provider for Google Gemini models."""
 
-    def __init__(self, api_key: str, model: str) -> None:
-        self.api_key = api_key
-        self.model = model
+    VALIDATION_MODEL = "gemini-2.5-flash"
 
     def run_prompt(self, prompt: str) -> Tuple[str, float]:
         """
@@ -49,3 +48,12 @@ class GeminiProvider:
         latency = time.perf_counter() - start
         return str(message_content), float(latency)
 
+    def validate_key(self) -> bool:
+        """Cheapest possible call: list models rather than generate anything."""
+        if genai is None:
+            return False
+        try:
+            genai.Client(api_key=self.api_key).models.list()
+            return True
+        except Exception:
+            return False

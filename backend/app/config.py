@@ -64,6 +64,22 @@ class Settings:
     VALIDATE_KEY_RATE_LIMIT_PER_IP = (
         os.getenv("VALIDATE_KEY_RATE_LIMIT_PER_IP") or "20/minute"
     )
+    # Auth endpoints are limited per IP: there is no authenticated identity to
+    # key on yet, and the point is to slow credential stuffing and password
+    # guessing. bcrypt at cost 12 also makes each attempt expensive to serve,
+    # so an unthrottled login is a cheap CPU-exhaustion vector.
+    LOGIN_RATE_LIMIT_PER_IP = os.getenv("LOGIN_RATE_LIMIT_PER_IP") or "10/minute"
+    REGISTER_RATE_LIMIT_PER_IP = (
+        os.getenv("REGISTER_RATE_LIMIT_PER_IP") or "5/minute"
+    )
+
+    # --- API documentation -------------------------------------------------
+    # /docs, /redoc and /openapi.json are off unless explicitly switched on.
+    # Defaulting to off rather than keying off an ENVIRONMENT string means a
+    # missing or misspelled variable fails closed: the worst case is a
+    # developer without Swagger, not a production deployment publishing an
+    # interactive client for its own API.
+    ENABLE_API_DOCS = _env_flag("ENABLE_API_DOCS", False)
 
     # --- Session cookie ----------------------------------------------------
     # The session JWT is delivered as an httpOnly cookie so page scripts cannot

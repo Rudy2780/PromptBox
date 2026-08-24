@@ -18,7 +18,7 @@ export async function downloadExport(versionId, format) {
             if (errorData.detail) {
                 errorMessage = errorData.detail;
             }
-        } catch (e) {
+        } catch {
             // response was not JSON, ignore
         }
         throw new Error(errorMessage);

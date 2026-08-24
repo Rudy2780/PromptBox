@@ -32,6 +32,11 @@ const Login = ({ onAuth }) => {
   };
 
   const handleSubmit = async () => {
+    // `loading` was previously write-only. Reading it here stops a second
+    // click from firing a duplicate register/login request while the first
+    // is still in flight.
+    if (loading) return;
+
     if (!form.email.trim()) {
       showMessage("Email is required");
       return;
@@ -45,9 +50,12 @@ const Login = ({ onAuth }) => {
     setLoading(true);
     try {
       if (action === "Sign Up") {
-        await register(form.email, form.password);
-        showMessage("Account created! You can now login.");
-        setTimeout(() => setMessage(""), 3000);
+        // The server deliberately answers the same way whether or not the
+        // address was already taken, so show its message rather than asserting
+        // an account was created.
+        const data = await register(form.email, form.password);
+        showMessage(data?.detail || "Registration submitted. You can now sign in.");
+        setTimeout(() => setMessage(""), 6000);
       } else {
         // Login sets an httpOnly session cookie. There is no token in the
         // response for us to keep -- the cookie IS the session.

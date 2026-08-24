@@ -31,7 +31,12 @@ export default function ModelSelector({
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const safeSelectedModels = selectedModels ?? (model ? [model] : []);
+  // Memoised: without this the fallback allocates a new array on every render,
+  // which invalidates the selectedProviders useMemo below every time.
+  const safeSelectedModels = useMemo(
+    () => selectedModels ?? (model ? [model] : []),
+    [selectedModels, model]
+  );
 
   const toggleModel = (model) => {
     setSelectedModels?.((prev = safeSelectedModels) => {

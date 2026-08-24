@@ -26,4 +26,30 @@ export default defineConfig([
       'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
     },
   },
+  {
+    // Test files run under Vitest, whose globals (describe/it/expect/vi/...)
+    // are injected by the runner rather than imported. Without declaring them
+    // every test file reported a wall of no-undef errors -- 106 of the 115
+    // problems in this project came from this one omission, which made
+    // --max-warnings=0 impossible to adopt as a CI gate.
+    files: ['**/*.test.{js,jsx}', 'src/test/**/*.{js,jsx}'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        suite: 'readonly',
+        describe: 'readonly',
+        it: 'readonly',
+        test: 'readonly',
+        expect: 'readonly',
+        expectTypeOf: 'readonly',
+        assert: 'readonly',
+        vi: 'readonly',
+        vitest: 'readonly',
+        beforeAll: 'readonly',
+        afterAll: 'readonly',
+        beforeEach: 'readonly',
+        afterEach: 'readonly',
+      },
+    },
+  },
 ])

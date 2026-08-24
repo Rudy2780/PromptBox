@@ -98,6 +98,17 @@ JWT_SECRET=   # required, min 32 chars - generate one, see below
 |---|---|---|
 | `DATABASE_URL` | SQLAlchemy-compatible database URL | `sqlite:///promptbox.db` |
 | `JWT_SECRET` | Secret key used to sign JWT tokens (HS256). Minimum 32 characters. | **Required — no default. The app refuses to start without it.** |
+| `ENABLE_API_DOCS` | Serve `/docs`, `/redoc` and `/openapi.json` | `false` (fail-closed) |
+| `CORS_ORIGINS` | Comma-separated allowlist of browser origins | `http://localhost:5173,https://prompt-box-seven.vercel.app` |
+| `SESSION_COOKIE_SAMESITE` | `strict` \| `lax` \| `none`. Must be `none` while the SPA and API are on different domains. | `none` |
+| `SESSION_COOKIE_SECURE` | Send the session cookie over HTTPS only. Required when SameSite is `none`. | `true` |
+| `SESSION_COOKIE_NAME` | Session cookie name | `promptbox_session` |
+| `ACCESS_TOKEN_TTL_HOURS` | Session lifetime | `24` |
+| `RATE_LIMIT_ENABLED` | Master switch for all rate limiting | `true` |
+| `LOGIN_RATE_LIMIT_PER_IP` | Login attempts per IP | `10/minute` |
+| `REGISTER_RATE_LIMIT_PER_IP` | Registrations per IP | `5/minute` |
+| `LLM_RATE_LIMIT_PER_USER` / `..._PER_IP` | Prompt execution limits | `30/minute` / `60/minute` |
+| `VALIDATE_KEY_RATE_LIMIT_PER_USER` / `..._PER_IP` | Key-validation limits | `10/minute` / `20/minute` |
 
 Generate a `JWT_SECRET` with:
 
@@ -114,14 +125,16 @@ python -c "import secrets; print(secrets.token_urlsafe(48))"
 
 > **Note:** API keys for OpenAI, Gemini, and Anthropic are provided by the user at runtime through the application UI — they are **not** stored in `.env`.
 
-### 3. Demo / Testing Credentials
+### 3. Test Account
 
-For testing the running application, you can register any account through the UI or use these sample credentials after seeding:
+Register an account through the UI — sign-up is open and needs no invite.
 
-```
-Email:    demo@example.com
-Password: password123
-```
+> **Note:** this section previously published a shared demo account
+> (`demo@example.com` / `password123`). Documented credentials are working
+> credentials for anyone who reads the repository, so they have been removed.
+> If that account exists on any deployment, delete it. Registration is
+> rate-limited and deliberately does not reveal whether an address is already
+> taken, so it cannot be used to probe for accounts.
 
 > **LLM API Keys for testing execution:** You will need a valid OpenAI or Google Gemini API key to test live prompt execution. Backend unit tests mock all provider calls and **do not require real API keys**.
 
@@ -150,8 +163,10 @@ python -m app.migrations
 uvicorn app.main:app --reload --port 8000
 ```
 
-The backend API will be available at: `http://localhost:8000`  
-Interactive API docs (Swagger UI): `http://localhost:8000/docs`
+The backend API will be available at: `http://localhost:8000`
+
+Interactive API docs are **disabled by default**. Set `ENABLE_API_DOCS=true` in
+`backend/.env` to serve `/docs`, `/redoc` and `/openapi.json` locally.
 
 ### Frontend
 
@@ -167,9 +182,25 @@ npm run dev
 
 The frontend will be available at: `http://localhost:5173`
 
+| Variable | Description | Default |
+|---|---|---|
+| `VITE_API_BASE` | Backend base URL the SPA calls | the deployed Render URL — **set this for local development** |
+
 ### Running Both Together
 
-Open two terminal windows and run the backend and frontend commands simultaneously. The frontend is pre-configured to communicate with the backend at `http://localhost:8000`.
+Open two terminal windows and run the backend and frontend commands simultaneously.
+
+> **Important:** the frontend does **not** default to your local backend. `API_BASE`
+> (`frontend/src/api/config.js`) falls back to the deployed Render URL, so a local
+> `npm run dev` will talk to **production** unless you point it elsewhere. Create
+> `frontend/.env.local` with:
+>
+> ```bash
+> VITE_API_BASE=http://localhost:8000
+> ```
+>
+> This matters beyond convenience: without it, any provider API key you paste into
+> the local UI is sent to the production backend.
 
 ---
 
@@ -194,16 +225,34 @@ npm test
 
 ## Additional Notes for Reviewers
 
-- **Database:** SQLite is used for simplicity — the database file (`promptbox.db`) is created automatically on first run. No database server setup is required.
-- **CORS:** The backend is configured to allow requests from `http://localhost:5173` (the default Vite dev server port). If you run the frontend on a different port, update `allow_origins` in `backend/app/main.py`.
+- **Database:** SQLite is used for simplicity — no database server setup is required.
+  The schema is **not** created automatically: run `python -m app.migrations` from
+  `backend/` before the first start and after any model change. (Importing the app used
+  to create tables as a side effect, which meant running the test suite could mutate
+  whatever `DATABASE_URL` pointed at.)
+- **CORS:** Allowed origins default to `http://localhost:5173` and the deployed frontend. Override with the `CORS_ORIGINS` environment variable (comma-separated) rather than editing `backend/app/main.py`. The list must stay explicit: credentialed cookies cannot be used with a wildcard origin, and the allowlist is what gates the CSRF preflight.
 - **Template Seeding:** Prompt templates are seeded into the database from `backend/app/seed_templates.py`. Run it once manually if the templates table is empty: `python -m app.seed_templates` from the `backend/` directory.
-- **JWT Expiry:** Tokens are short-lived. If you receive 401 errors after a period of inactivity, log in again.
+- **Sessions:** Signing in sets an `httpOnly` session cookie (`promptbox_session`); the
+  token is never returned in the response body and page scripts cannot read it. The
+  cookie is `Secure` with `SameSite=None`, because the deployed frontend and backend are
+  on different domains — see the `SESSION_COOKIE_*` variables above. Sign out with
+  `POST /auth/logout`, which clears it server-side.
+- **JWT Expiry:** Tokens last **24 hours** (`ACCESS_TOKEN_TTL_HOURS`) and are **not
+  revocable** — there is no denylist yet, though tokens carry a `jti` so one can be added.
+  If you receive 401 errors after a period of inactivity, log in again.
 - **No real API calls in tests:** All backend tests that touch LLM providers use mocks. You can run the full test suite without any API keys.
 
 ---
 
 ## API Documentation 
-**Backend (FastAPI — OpenAPI spec):** Start the backend server, then visit: - Interactive docs: http://localhost:8000/docs (Swagger UI) 
-- Alternative view: http://localhost:8000/redoc A static copy of the OpenAPI spec is also saved at `backend/docs/openapi.json`.
+**Backend (FastAPI — OpenAPI spec):** set `ENABLE_API_DOCS=true` in `backend/.env`,
+start the server, then visit:
+
+- Interactive docs: http://localhost:8000/docs (Swagger UI)
+- Alternative view: http://localhost:8000/redoc
+
+These are off unless explicitly enabled, so that a deployment does not publish an
+interactive client for its own API. A static copy of the spec is also saved at
+`backend/docs/openapi.json`.
 
 **Frontend (JSDoc):** Pre-generated HTML documentation is in `frontend/docs/`. Open `frontend/docs/index.html` in any browser — no server required.

@@ -9,11 +9,11 @@ describe("Registration form", () => {
     fetch.mockClear()
   })
 
-  test("shows success message on successful registration", async () => {
+  test("shows the server's registration message", async () => {
     fetch.mockResolvedValueOnce({
       ok: true,
       status: 201,
-      json: async () => ({}),
+      json: async () => ({ status: "ok", detail: "If that email address is available, your account has been created. You can now sign in." }),
     })
 
     render(<MemoryRouter><Login /></MemoryRouter>)
@@ -28,15 +28,18 @@ describe("Registration form", () => {
     fireEvent.click(screen.getByTestId("signup-btn"))
 
     await waitFor(() => {
-      expect(screen.getByText("Account created! You can now login.")).toBeInTheDocument()
+      expect(screen.getByText("If that email address is available, your account has been created. You can now sign in.")).toBeInTheDocument()
     })
   })
 
-  test("shows error on duplicate email (409)", async () => {
+  test("a taken address is indistinguishable from a fresh one", async () => {
+    // The server used to answer 409 "Email already registered" here, which let
+    // anyone test whether an address had an account. It now returns the same
+    // 201 and body as a fresh signup, so the UI cannot reveal the difference.
     fetch.mockResolvedValueOnce({
-      ok: false,
-      status: 409,
-      json: async () => ({ detail: "Email already registered" }),
+      ok: true,
+      status: 201,
+      json: async () => ({ status: "ok", detail: "If that email address is available, your account has been created. You can now sign in." }),
     })
 
     render(<MemoryRouter><Login /></MemoryRouter>)
@@ -51,8 +54,9 @@ describe("Registration form", () => {
     fireEvent.click(screen.getByTestId("signup-btn"))
 
     await waitFor(() => {
-      expect(screen.getByText("Email already registered")).toBeInTheDocument()
+      expect(screen.getByText("If that email address is available, your account has been created. You can now sign in.")).toBeInTheDocument()
     })
+    expect(screen.queryByText(/already registered/i)).not.toBeInTheDocument()
   })
 
   test("blocks submission when password is under 8 characters", async () => {
