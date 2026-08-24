@@ -39,7 +39,12 @@ class AnthropicProvider:
             auth_error_cls = getattr(anthropic, "AuthenticationError", None) if anthropic is not None else None
             if auth_error_cls is not None and isinstance(exc, auth_error_cls):
                 raise ProviderAuthError("Invalid Anthropic API key") from exc
-            raise ProviderAuthError(f"Anthropic provider error: {exc}") from exc
+            # Only a genuine AuthenticationError above maps to 401. Everything
+            # else -- rate limits, timeouts, bad model ids, network faults --
+            # is an upstream failure (502), matching the OpenAI and Gemini
+            # providers. Reporting them as "invalid API key" made users rotate
+            # keys that were never broken.
+            raise ProviderError(f"Anthropic provider error: {exc}") from exc
         
         latency = time.perf_counter() - start
         return str(message_content), float(latency)

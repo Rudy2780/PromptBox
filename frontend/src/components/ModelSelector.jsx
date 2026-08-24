@@ -60,20 +60,30 @@ export default function ModelSelector({
     setLoading(true);
     setStatus(null);
 
-    const results = await Promise.all(
-      selectedProviders.map((p) => {
-        const key =
-          (hasMultiKey ? apiKeys?.[p] : apiKey) ||
-          "";
-        return validateKey(p, key).then((r) => ({ provider: p, ok: r.status === 200 }));
-      })
-    );
+    try {
+      const results = await Promise.all(
+        selectedProviders.map((p) => {
+          const key =
+            (hasMultiKey ? apiKeys?.[p] : apiKey) ||
+            "";
+          return validateKey(p, key).then((r) => ({ provider: p, ok: r.status === 200 }));
+        })
+      );
 
-    const allValid = results.every((r) => r.ok);
-    setStatus(allValid ? "valid" : "invalid");
-    onValidated?.(allValid);
-
-    setLoading(false);
+      const allValid = results.every((r) => r.ok);
+      setStatus(allValid ? "valid" : "invalid");
+      onValidated?.(allValid);
+    } catch {
+      // A rejected request -- offline, CORS, or a Render cold-start timeout --
+      // used to skip setLoading(false) entirely, pinning the button at
+      // "Validating..." forever and leaving Execute gated until a reload.
+      // Reported as its own state rather than "invalid" so a transport failure
+      // is not misattributed to the user's key.
+      setStatus("error");
+      onValidated?.(false);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -161,6 +171,11 @@ export default function ModelSelector({
 
       {status === "valid" && <p style={{ color: "green", fontSize: "0.9rem" }}>API key is valid</p>}
       {status === "invalid" && <p style={{ color: "red", fontSize: "0.9rem" }}>Invalid API key</p>}
+      {status === "error" && (
+        <p style={{ color: "red", fontSize: "0.9rem" }}>
+          Could not reach the server to validate. Check your connection and try again.
+        </p>
+      )}
     </div>
   );
 }
