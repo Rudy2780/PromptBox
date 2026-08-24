@@ -4,8 +4,8 @@ import { useNavigate } from "react-router-dom";
 import user_icon from "../assets/person.png";
 import email_icon from "../assets/email.png";
 import password_icon from "../assets/password.png";
-
-const API_BASE = "https://promptbox-9d83.onrender.com";
+import { login, register } from "../api/authApi";
+import { GUEST_SESSION } from "../session";
 
 const Login = ({ onAuth }) => {
   const navigate = useNavigate();
@@ -43,33 +43,29 @@ const Login = ({ onAuth }) => {
 
     setMessage("");
     setLoading(true);
-    const endpoint = action === "Sign Up" ? "/auth/register" : "/auth/login";
     try {
-      const res = await fetch(`${API_BASE}${endpoint}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: form.email, password: form.password }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(extractError(data?.detail));
-
       if (action === "Sign Up") {
+        await register(form.email, form.password);
         showMessage("Account created! You can now login.");
         setTimeout(() => setMessage(""), 3000);
       } else {
-        onAuth({ email: data.email ?? form.email, token: data.token });
+        // Login sets an httpOnly session cookie. There is no token in the
+        // response for us to keep -- the cookie IS the session.
+        const data = await login(form.email, form.password);
+        onAuth({ email: data?.email ?? form.email });
         navigate("/dashboard");
       }
     } catch (err) {
-      showMessage(err.message || "Request failed");
+      showMessage(extractError(err.message) || "Request failed");
     } finally {
       setLoading(false);
     }
   };
 
   const handleGuest = () => {
-    onAuth(null);
+    // An explicit guest marker rather than null: the dashboard needs to tell
+    // "guest" apart from "signed in", and null read as the latter.
+    onAuth(GUEST_SESSION);
     navigate("/dashboard");
   };
 

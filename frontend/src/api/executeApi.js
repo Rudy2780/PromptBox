@@ -1,8 +1,7 @@
-const API_BASE = "https://promptbox-9d83.onrender.com";
-
+import { apiJson } from "./http.js";
 
 /**
- * Execute a single prompt against one LLM model.
+ * Execute a single prompt against one LLM model. Requires an authenticated session.
  * @param {Object} params
  * @param {string} params.prompt - The prompt text to send
  * @param {string} params.model - Model identifier (e.g. "gpt-4o", "gemini-2.5-flash")
@@ -11,31 +10,17 @@ const API_BASE = "https://promptbox-9d83.onrender.com";
  * @throws {Error} Server error detail message on non-OK responses
  */
 export async function executePrompt({ prompt, model, apiKey }) {
-  const response = await fetch(`${API_BASE}/api/execute`, {
+  return apiJson("/api/execute", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      prompt,
-      model,
-      api_key: apiKey,
-    }),
+    body: { prompt, model, api_key: apiKey },
+    errorMessage: "Execution failed.",
   });
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    const detail = data && data.detail ? data.detail : "Execution failed.";
-    throw new Error(detail);
-  }
-
-  return data;
 }
-
 
 /**
  * Execute a prompt against multiple models in a single batch request.
+ * Requires an authenticated session. The server accepts at most 4 distinct
+ * models per request and deduplicates the list.
  * @param {Object} params
  * @param {string} params.prompt - The prompt text to send
  * @param {string[]} params.models - Array of model identifiers to execute against
@@ -44,25 +29,10 @@ export async function executePrompt({ prompt, model, apiKey }) {
  * @throws {Error} Server error detail message on non-OK responses
  */
 export async function executeBatch({ prompt, models, apiKeys }) {
-  const response = await fetch(`${API_BASE}/api/prompt`, {
+  const data = await apiJson("/api/prompt", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      prompt,
-      models,
-      api_keys: apiKeys,
-    }),
+    body: { prompt, models, api_keys: apiKeys },
+    errorMessage: "Execution failed.",
   });
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    const detail = data && data.detail ? data.detail : "Execution failed.";
-    throw new Error(detail);
-  }
-
-  return data.responses || [];
+  return data?.responses || [];
 }
-

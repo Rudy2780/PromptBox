@@ -10,6 +10,13 @@ import ExportDropdown from "../components/ExportDropdown";
 import TemplateLibrary from '../components/TemplateLibrary'
 
 export default function DashBoard({ user, onLogout }) {
+  // A guest has no session, so every authenticated call would 401. Rather than
+  // rendering panels that silently fail (or, as before, vanish with no
+  // explanation), guests get the one thing that genuinely works unauthenticated
+  // -- the template library -- and a clear prompt to sign in.
+  const isGuest = Boolean(user?.isGuest);
+  const isAuthenticated = Boolean(user) && !isGuest;
+
   const [selectedModels, setSelectedModels] = useState(["gpt-4o"]);
   const [apiKeys, setApiKeys] = useState({ openai: "", gemini: "", anthropic: "" });
   const [isKeyValid, setIsKeyValid] = useState(false);
@@ -59,13 +66,20 @@ export default function DashBoard({ user, onLogout }) {
     <div className="app">
       <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <h1>PromptBox Dashboard</h1>
-        {user && (
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <span style={{ fontSize: "0.9rem" }}>Signed in as {user.email}</span>
-            <button onClick={onLogout}>Log out</button>
-          </div>
-        )}
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <span style={{ fontSize: "0.9rem" }}>
+            {isAuthenticated ? `Signed in as ${user.email}` : "Browsing as guest"}
+          </span>
+          <button onClick={onLogout}>{isAuthenticated ? "Log out" : "Sign in"}</button>
+        </div>
       </header>
+
+      {isGuest && (
+        <p className="guest-notice" data-testid="guest-notice">
+          You are browsing as a guest. Running prompts, saving versions and
+          exporting all require an account -- sign in to enable them.
+        </p>
+      )}
 
       <main>
         <ModelSelector
@@ -89,30 +103,27 @@ export default function DashBoard({ user, onLogout }) {
 
       <ResponseDisplay results={results} />
 
-      {user && (
+      {isAuthenticated && (
         <SaveVersion
-          token={user.token}
           promptText={prompt}
           responseText={results?.[0]?.response_text || null}
           responseModel={results?.[0]?.model || null}
           responseLatency={results?.[0]?.latency || null}
         />
       )}
-      {user && (
-        <ExportDropdown token={user.token} versionId={currentVersionId} />
+      {isAuthenticated && (
+        <ExportDropdown versionId={currentVersionId} />
       )}
 
       <aside>
-        {user && (
+        {isAuthenticated && (
           <VersionSelector
-            token={user.token}
             onSelectVersion={handleSelectVersion}
             onVersionDeleted={handleVersionDeleted}
           />
         )}
-        {user && (
+        {isAuthenticated && (
           <DiffVersionPicker
-            token={user.token}
             onCompare={handleCompare}
             refreshSignal={versionsRefreshSignal}
           />

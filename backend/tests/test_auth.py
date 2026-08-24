@@ -45,7 +45,11 @@ def test_login_valid(client):
         "password": "password123"
     })
     assert res.status_code == 200
-    assert "token" in res.json()
+    assert res.json()["email"] == "loginuser@example.com"
+    # The session now travels in an httpOnly cookie. Returning the token in
+    # the body as well would hand it straight back to page scripts.
+    assert "token" not in res.json()
+    assert client.cookies.get("promptbox_session")
 
 
 def test_login_wrong_password(client):
@@ -73,12 +77,20 @@ def test_jwt_contains_fields(client):
         "email": "jwtuser@example.com",
         "password": "password123"
     })
-    res = client.post("/auth/login", json={
+    client.post("/auth/login", json={
         "email": "jwtuser@example.com",
         "password": "password123"
     })
-    assert "token" in res.json()
+    token = client.cookies.get("promptbox_session")
+    assert token
+
     from jose import jwt
-    payload = jwt.decode(res.json()["token"],key="", options={"verify_signature": False})
-    assert "sub" in payload
-    assert "exp" in payload
+    payload = jwt.decode(
+        token, key="", options={"verify_signature": False, "verify_aud": False}
+    )
+    # sub/exp were always present; jti/iat/aud/iss are new. jti is the claim a
+    # future revocation denylist keys on.
+    for claim in ("sub", "exp", "jti", "iat", "aud", "iss"):
+        assert claim in payload, f"missing {claim} claim"
+    assert payload["aud"] == "promptbox-web"
+    assert payload["iss"] == "promptbox-api"

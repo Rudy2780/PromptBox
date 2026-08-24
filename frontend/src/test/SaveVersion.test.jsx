@@ -20,7 +20,6 @@ describe("SaveVersion", () => {
 
         render(
             <SaveVersion
-            token="test-token"
             promptText="Explain quicksort"
             responseText={null}
             responseModel={null}
@@ -41,7 +40,7 @@ describe("SaveVersion", () => {
             expect(screen.getByText(/version saved/i)).toBeInTheDocument();
         });
 
-        expect(versionsApi.saveVersion).toHaveBeenCalledWith("test-token", {
+        expect(versionsApi.saveVersion).toHaveBeenCalledWith({
             name: "v1",
             tag: "release-candidate",
             prompt_text: "Explain quicksort",
@@ -58,7 +57,6 @@ describe("SaveVersion", () => {
 
         render(
             <SaveVersion
-            token="test-token"
             promptText=""
             responseText={null}
             responseModel={null}

@@ -1,5 +1,4 @@
-const API_BASE = "https://promptbox-9d83.onrender.com"
-
+import { apiJson } from "./http.js";
 
 /**
  * Fetch prompt templates, optionally filtered by category.
@@ -8,18 +7,11 @@ const API_BASE = "https://promptbox-9d83.onrender.com"
  * @throws {Error} Server error detail message on non-OK responses
  */
 export async function getTemplates(category = null) {
-    const url = new URL(`${API_BASE}/api/templates/`)
-    if (category) {
-        url.searchParams.set("category", category)
-    }
-    const res = await fetch(url.toString())
-    const data = await res.json()
-    if (!res.ok) {
-        throw new Error(data?.detail || "Failed to fetch templates")
-    }
-    return data
+    const query = category ? `?category=${encodeURIComponent(category)}` : "";
+    return apiJson(`/api/templates/${query}`, {
+        errorMessage: "Failed to fetch templates",
+    });
 }
-
 
 /**
  * Fetch a single template by ID.
@@ -28,10 +20,7 @@ export async function getTemplates(category = null) {
  * @throws {Error} Server error detail message if not found
  */
 export async function getTemplate(id) {
-    const res = await fetch(`${API_BASE}/api/templates/${id}`)
-    const data = await res.json()
-    if (!res.ok) {
-        throw new Error(data?.detail || "Failed to fetch template")
-    }
-    return data
+    return apiJson(`/api/templates/${id}`, {
+        errorMessage: "Failed to fetch template",
+    });
 }

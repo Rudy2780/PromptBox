@@ -91,13 +91,26 @@ Create a `.env` file inside the `backend/` directory (one already exists for dev
 ```bash
 # backend/.env
 DATABASE_URL=sqlite:///promptbox.db
-JWT_SECRET=your-secret-key-here
+JWT_SECRET=   # required, min 32 chars - generate one, see below
 ```
 
 | Variable | Description | Default |
 |---|---|---|
 | `DATABASE_URL` | SQLAlchemy-compatible database URL | `sqlite:///promptbox.db` |
-| `JWT_SECRET` | Secret key used to sign JWT tokens | `dev-secret-change-me` |
+| `JWT_SECRET` | Secret key used to sign JWT tokens (HS256). Minimum 32 characters. | **Required — no default. The app refuses to start without it.** |
+
+Generate a `JWT_SECRET` with:
+
+```bash
+python -c "import secrets; print(secrets.token_urlsafe(48))"
+```
+
+> **Security:** `JWT_SECRET` has no fallback value by design. Because HS256 is a
+> symmetric algorithm, anyone who knows the secret can forge a token for any
+> user id — so a default committed to source or documentation would be
+> equivalent to having no authentication. The application raises at startup if
+> the variable is missing or shorter than 32 characters. Rotating this value
+> invalidates every outstanding session.
 
 > **Note:** API keys for OpenAI, Gemini, and Anthropic are provided by the user at runtime through the application UI — they are **not** stored in `.env`.
 
@@ -128,6 +141,10 @@ source venv/bin/activate        # macOS/Linux
 
 # Install dependencies
 pip install -r requirements.txt
+
+# Create/update the database schema. Required before first run, and after any
+# model change. This no longer happens automatically on import.
+python -m app.migrations
 
 # Run the development server
 uvicorn app.main:app --reload --port 8000

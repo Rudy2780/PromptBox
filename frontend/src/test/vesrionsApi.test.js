@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { getVersions } from "../api/versionsApi"
+import { API_BASE } from "../api/http"
 
 global.fetch = vi.fn();
 
@@ -14,10 +15,10 @@ describe("getVersions API helper", () => {
             json: async () => [],
         });
 
-        await getVersions("fake-token");
+        await getVersions();
 
         const calledUrl = fetch.mock.calls[0][0].toString();
-        expect(calledUrl).toBe("http://localhost:8000/api/versions/")
+        expect(calledUrl).toBe(`${API_BASE}/api/versions/`)
     });
 
     it("GETs /api/verions/?serach=foo when search is provided", async () => {
@@ -26,10 +27,10 @@ describe("getVersions API helper", () => {
             json: async () => [],
         });
 
-        await getVersions("fake-token", "foo");
+        await getVersions("foo");
 
         const calledUrl = fetch.mock.calls[0][0].toString();
-        expect(calledUrl).toBe("http://localhost:8000/api/versions/?search=foo");
+        expect(calledUrl).toBe(`${API_BASE}/api/versions/?search=foo`);
     });
 
     it("URL-encodes search strings with special characters", async () => {
@@ -38,10 +39,10 @@ describe("getVersions API helper", () => {
             json: async () => [],
         });
 
-        await getVersions("fake-token", "hello world");
+        await getVersions("hello world");
 
         const calledUrl = fetch.mock.calls[0][0].toString();
-        expect(calledUrl).toContain("search=hello+world");
+        expect(calledUrl).toContain("search=hello%20world");
     });
 
     it("throws a user-friendly error when response is not ok", async () => {

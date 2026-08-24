@@ -1,7 +1,5 @@
 import pytest
-from fastapi.testclient import TestClient
 
-from app.main import app
 from app.api import routes_execute
 
 
@@ -24,18 +22,13 @@ def patch_provider(monkeypatch):
     yield
 
 
-@pytest.fixture
-def client():
-    return TestClient(app)
-
-
-def test_prompt_two_models_returns_two_responses(client):
+def test_prompt_two_models_returns_two_responses(authed_client):
     payload = {
         "prompt": "test prompt",
         "models": ["gpt-4o", "gemini-2.5-flash"],
         "api_keys": {"openai": "k-openai", "gemini": "k-gemini"},
     }
-    res = client.post("/api/prompt", json=payload)
+    res = authed_client.post("/api/prompt", json=payload)
     assert res.status_code == 200
     body = res.json()
     assert "responses" in body
@@ -43,13 +36,13 @@ def test_prompt_two_models_returns_two_responses(client):
     assert {r["model"] for r in body["responses"]} == set(payload["models"])
 
 
-def test_prompt_no_models_returns_400(client):
+def test_prompt_no_models_returns_400(authed_client):
     payload = {"prompt": "hello", "models": [], "api_keys": {"openai": "k-openai"}}
-    res = client.post("/api/prompt", json=payload)
+    res = authed_client.post("/api/prompt", json=payload)
     assert res.status_code == 400
 
 
-def test_prompt_empty_prompt_returns_400(client):
+def test_prompt_empty_prompt_returns_400(authed_client):
     payload = {"prompt": " ", "models": ["gpt-4o"], "api_keys": {"openai": "k-openai"}}
-    res = client.post("/api/prompt", json=payload)
+    res = authed_client.post("/api/prompt", json=payload)
     assert res.status_code == 400

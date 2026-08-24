@@ -2,13 +2,13 @@ import { useEffect, useState } from 'react'
 import { getVersions } from '../api/versionsApi'
 import './DiffVersionPicker.css'
 
-export default function DiffVersionPicker({ token, onCompare, refreshSignal = 0 }) {
+export default function DiffVersionPicker({ onCompare, refreshSignal = 0 }) {
   const [versions, setVersions] = useState([])
   const [selectedIds, setSelectedIds] = useState([])
 
   async function loadVersions() {
     try {
-      const data = await getVersions(token)
+      const data = await getVersions()
       setVersions(data)
       setSelectedIds((prev) => prev.filter((id) => data.some((v) => v.id === id)))
     } catch (err) {
@@ -18,7 +18,7 @@ export default function DiffVersionPicker({ token, onCompare, refreshSignal = 0 
 
   useEffect(() => {
     loadVersions()
-  }, [token, refreshSignal])
+  }, [refreshSignal])
 
   function handleSelect(id) {
     if (selectedIds.includes(id)) {

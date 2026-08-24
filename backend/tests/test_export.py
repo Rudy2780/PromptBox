@@ -2,13 +2,21 @@
 Tests for GET /api/export/:id endpoint.
 """
 import pytest
+from fastapi.testclient import TestClient
+
 from app.main import app
 
 def register_and_get_headers(client, email="exportuser@example.com", password="password123"):
+    """Register + log in, returning the headers callers must send.
+
+    Authentication now travels in an httpOnly cookie, which the TestClient's
+    cookie jar stores and replays automatically -- so the returned dict carries
+    only the CSRF header that cookie-authenticated writes require.
+    """
     client.post("/auth/register", json={"email": email, "password": password})
     login_res = client.post("/auth/login", json={"email": email, "password": password})
-    token = login_res.json()["token"]
-    return {"Authorization": f"Bearer {token}"}
+    assert login_res.status_code == 200, f"login failed: {login_res.text}"
+    return {"X-Requested-With": "PromptBox"}
 
 VALID_VERSION = {
     "name": "Export Test Prompt",
@@ -70,7 +78,14 @@ def test_export_unsupported_format_returns_400(client, test_version_id):
     res = client.get(f"/api/export/{version_id}?format=pdf", headers=headers)
     assert res.status_code == 400
 
-def test_export_unauthenticated_returns_401(client, test_version_id):
+def test_export_unauthenticated_returns_401(client, test_version_id, make_authed_client):
+    """A caller with no session cannot export someone else's version.
+
+    Uses a separate client: `test_version_id` signs `client` in, and the
+    session cookie now lives in that client's jar, so simply omitting the
+    Authorization header no longer makes the request anonymous.
+    """
     version_id, _ = test_version_id
-    res = client.get(f"/api/export/{version_id}?format=txt")
+    anonymous = TestClient(app, base_url="https://testserver")
+    res = anonymous.get(f"/api/export/{version_id}?format=txt")
     assert res.status_code in (401, 403)

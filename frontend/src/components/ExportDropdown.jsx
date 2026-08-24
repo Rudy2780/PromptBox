@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { downloadExport } from '../api/exportApi';
 import './ExportDropdown.css';
 
-export default function ExportDropdown({ token, versionId }) {
+export default function ExportDropdown({ versionId }) {
     const [format, setFormat] = useState('txt');
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState({ text: '', type: '' });
@@ -14,7 +14,7 @@ export default function ExportDropdown({ token, versionId }) {
         setMessage({ text: '', type: '' });
 
         try {
-            await downloadExport(token, versionId, format);
+            await downloadExport(versionId, format);
             setMessage({ text: 'Export successful!', type: 'success' });
             
             // clear success message after 3 seconds

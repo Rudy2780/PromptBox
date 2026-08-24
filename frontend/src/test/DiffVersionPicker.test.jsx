@@ -12,16 +12,16 @@ describe('DiffVersionPicker', () => {
     versionsApi.getVersions.mockResolvedValue([])
 
     const { rerender } = render(
-      <DiffVersionPicker token="fake-token" onCompare={() => {}} refreshSignal={0} />
+      <DiffVersionPicker onCompare={() => {}} refreshSignal={0} />
     )
 
     await waitFor(() => {
       expect(versionsApi.getVersions).toHaveBeenCalledTimes(1)
-      expect(versionsApi.getVersions).toHaveBeenCalledWith('fake-token')
+      expect(versionsApi.getVersions).toHaveBeenCalledWith()
     })
 
     rerender(
-      <DiffVersionPicker token="fake-token" onCompare={() => {}} refreshSignal={1} />
+      <DiffVersionPicker onCompare={() => {}} refreshSignal={1} />
     )
 
     await waitFor(() => {

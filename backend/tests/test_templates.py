@@ -1,24 +1,19 @@
 import pytest
-from fastapi.testclient import TestClient
-from app.main import app
-from app.database import SessionLocal
 from app.models.template import Template
 
+# `client` and `db_session` come from conftest.py. This fixture previously
+# opened `SessionLocal` directly and inserted seed rows into the *real*
+# configured database; it now seeds the disposable test database.
+
 @pytest.fixture(autouse=True)
-def seed_templates():
-    db = SessionLocal()
-    if db.query(Template).count() == 0:
+def seed_templates(db_session):
+    if db_session.query(Template).count() == 0:
         templates = [
             Template(name="Basic Q&A", category="structural", content="Question: [YOUR QUESTION HERE]"),
             Template(name="Code Review", category="use_case", content="Code: [PASTE CODE HERE]"),
         ]
-        db.add_all(templates)
-        db.commit()
-    db.close()
-
-@pytest.fixture
-def client():
-    return TestClient(app)
+        db_session.add_all(templates)
+        db_session.commit()
 
 def test_get_templates_returns_200_and_list(client):
     res = client.get("/api/templates/")

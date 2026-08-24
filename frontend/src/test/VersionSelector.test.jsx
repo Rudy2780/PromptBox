@@ -36,7 +36,7 @@ describe('VersionSelector', () => {
 
   test('version list displays all saved versions', async () => {
     versionsApi.getVersions.mockResolvedValue(mockVersions)
-    render(<VersionSelector token="fake-token" onSelectVersion={() => {}} />)
+    render(<VersionSelector onSelectVersion={() => {}} />)
 
     await waitFor(() => {
       expect(screen.getByText('Version 1')).toBeInTheDocument()
@@ -46,7 +46,7 @@ describe('VersionSelector', () => {
 
   test('version list is empty when no versions are saved', async () => {
     versionsApi.getVersions.mockResolvedValue([])
-    render(<VersionSelector token="fake-token" onSelectVersion={() => {}} />)
+    render(<VersionSelector onSelectVersion={() => {}} />)
 
     await waitFor(() => {
       expect(screen.getByText('No saved versions yet.')).toBeInTheDocument()
@@ -56,7 +56,7 @@ describe('VersionSelector', () => {
   test('selecting a version calls onSelectVersion with correct data', async () => {
     versionsApi.getVersions.mockResolvedValue(mockVersions)
     const onSelectMock = vi.fn()
-    render(<VersionSelector token="fake-token" onSelectVersion={onSelectMock} />)
+    render(<VersionSelector onSelectVersion={onSelectMock} />)
 
     await waitFor(() => {
       expect(screen.getByText('Version 1')).toBeInTheDocument()
@@ -69,7 +69,7 @@ describe('VersionSelector', () => {
 
   test('clicking refresh button calls getVersions again', async () => {
     versionsApi.getVersions.mockResolvedValue(mockVersions)
-    render(<VersionSelector token="fake-token" onSelectVersion={() => {}} />)
+    render(<VersionSelector onSelectVersion={() => {}} />)
 
     await waitFor(() => {
       expect(screen.getByText('Version 1')).toBeInTheDocument()
@@ -79,12 +79,12 @@ describe('VersionSelector', () => {
     
     fireEvent.click(screen.getByText('Refresh'))
     
-    expect(versionsApi.getVersions).toHaveBeenCalledWith('fake-token', '')
+    expect(versionsApi.getVersions).toHaveBeenCalledWith('')
   })
 
   test('renders search input above version list', async () => {
     versionsApi.getVersions.mockResolvedValue(mockVersions)
-    render(<VersionSelector token="fake-token" onSelectVersion={() => {}} />)
+    render(<VersionSelector onSelectVersion={() => {}} />)
 
     await waitFor(() => {
       expect(screen.getByPlaceholderText(/search/i)).toBeInTheDocument()
@@ -94,10 +94,10 @@ describe('VersionSelector', () => {
   test('typing in search input triggers getVersions with search param after debounce', async () => {
     vi.useFakeTimers()
     versionsApi.getVersions.mockResolvedValue(mockVersions)
-    render(<VersionSelector token="fake-token" onSelectVersion={() => {}} />)
+    render(<VersionSelector onSelectVersion={() => {}} />)
 
     await vi.waitFor(() => {
-      expect(versionsApi.getVersions).toHaveBeenCalledWith('fake-token', '')
+      expect(versionsApi.getVersions).toHaveBeenCalledWith('')
     })
 
     versionsApi.getVersions.mockClear()
@@ -110,7 +110,7 @@ describe('VersionSelector', () => {
     vi.advanceTimersByTime(300)
 
     await vi.waitFor(() => {
-      expect(versionsApi.getVersions).toHaveBeenCalledWith('fake-token', 'quicksort')
+      expect(versionsApi.getVersions).toHaveBeenCalledWith('quicksort')
     })
 
     vi.useRealTimers()
@@ -118,7 +118,7 @@ describe('VersionSelector', () => {
 
   test('shows "No results found" when search returns empty list', async () => {
     versionsApi.getVersions.mockResolvedValueOnce(mockVersions)
-    render(<VersionSelector token="fake-token" onSelectVersion={() => {}} />)
+    render(<VersionSelector onSelectVersion={() => {}} />)
 
     await waitFor(() => {
       expect(screen.getByText('Version 1')).toBeInTheDocument()
@@ -142,7 +142,7 @@ describe('VersionSelector', () => {
       tag: 'final',
     })
     const onSelectMock = vi.fn()
-    render(<VersionSelector token="fake-token" onSelectVersion={onSelectMock} />)
+    render(<VersionSelector onSelectVersion={onSelectMock} />)
 
     await waitFor(() => {
       expect(screen.getByText('Version 1')).toBeInTheDocument()
@@ -154,7 +154,7 @@ describe('VersionSelector', () => {
     fireEvent.click(screen.getByText('Save'))
 
     await waitFor(() => {
-      expect(versionsApi.updateVersion).toHaveBeenCalledWith('fake-token', 1, {
+      expect(versionsApi.updateVersion).toHaveBeenCalledWith(1, {
         name: 'Version 1 Updated',
         tag: 'final',
       })
@@ -164,7 +164,7 @@ describe('VersionSelector', () => {
   test('deleting a version calls API and removes item from list', async () => {
     versionsApi.getVersions.mockResolvedValue(mockVersions)
     versionsApi.deleteVersion.mockResolvedValue(undefined)
-    render(<VersionSelector token="fake-token" onSelectVersion={() => {}} />)
+    render(<VersionSelector onSelectVersion={() => {}} />)
 
     await waitFor(() => {
       expect(screen.getByText('Version 1')).toBeInTheDocument()
@@ -174,7 +174,7 @@ describe('VersionSelector', () => {
     fireEvent.click(screen.getAllByText('Delete')[0])
 
     await waitFor(() => {
-      expect(versionsApi.deleteVersion).toHaveBeenCalledWith('fake-token', 1)
+      expect(versionsApi.deleteVersion).toHaveBeenCalledWith(1)
     })
 
     await waitFor(() => {

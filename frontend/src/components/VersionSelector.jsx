@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { deleteVersion, getVersions, updateVersion } from '../api/versionsApi'
 import './VersionSelector.css'
 
-export default function VersionSelector({ token, onSelectVersion, onVersionDeleted }) {
+export default function VersionSelector({ onSelectVersion, onVersionDeleted }) {
   const [versions, setVersions] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -16,10 +16,9 @@ export default function VersionSelector({ token, onSelectVersion, onVersionDelet
   const [deletingId, setDeletingId] = useState(null)
 
   async function loadVersions(search = '') {
-    if (!token) return
     try {
       setLoading(true)
-      const data = await getVersions(token, search)
+      const data = await getVersions(search)
       setVersions(data)
       setError(null)
     } catch (err) {
@@ -36,7 +35,7 @@ export default function VersionSelector({ token, onSelectVersion, onVersionDelet
 
   useEffect(() => {
     loadVersions(debouncedSearch)
-  }, [debouncedSearch, token])
+  }, [debouncedSearch])
 
   function startEdit(version) {
     setEditingId(version.id)
@@ -68,7 +67,7 @@ export default function VersionSelector({ token, onSelectVersion, onVersionDelet
     try {
       setSavingEdit(true)
       setEditError(null)
-      const updated = await updateVersion(token, versionId, {
+      const updated = await updateVersion(versionId, {
         name: trimmedName,
         tag: trimmedTag || null,
       })
@@ -86,7 +85,7 @@ export default function VersionSelector({ token, onSelectVersion, onVersionDelet
     try {
       setDeletingId(versionId)
       setError(null)
-      await deleteVersion(token, versionId)
+      await deleteVersion(versionId)
       setVersions((prev) => prev.filter((v) => v.id !== versionId))
       if (onVersionDeleted) {
         onVersionDeleted(versionId)

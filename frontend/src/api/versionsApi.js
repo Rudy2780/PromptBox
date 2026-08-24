@@ -1,11 +1,21 @@
-const API_BASE = "https://promptbox-9d83.onrender.com";
+import { apiFetch, apiJson } from "./http.js";
 
+/**
+ * @typedef {Object} VersionResponse
+ * @property {number} id
+ * @property {string} name
+ * @property {string|null} tag
+ * @property {string} prompt_text
+ * @property {string|null} response_text
+ * @property {string|null} response_model
+ * @property {number|null} response_latency
+ * @property {string} created_at
+ */
 
 /**
  * Save a new prompt version to the user's account.
- * @param {string} token - JWT authentication token
  * @param {Object} payload
- * @param {string} payload.name - Version name (1–255 characters)
+ * @param {string} payload.name - Version name (1-255 characters)
  * @param {string|null} payload.tag - Optional tag (max 32 characters)
  * @param {string} payload.prompt_text - The prompt content
  * @param {string|null} payload.response_text - Optional LLM response text
@@ -14,76 +24,41 @@ const API_BASE = "https://promptbox-9d83.onrender.com";
  * @returns {Promise<VersionResponse>} The created version with id and created_at
  * @throws {Error} Server error detail message on non-OK responses
  */
-export async function saveVersion(token, payload) {
-    const res = await fetch(`${API_BASE}/api/versions/`, {
+export async function saveVersion(payload) {
+    return apiJson("/api/versions/", {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-        },
-        body : JSON.stringify(payload)
+        body: payload,
+        errorMessage: "Failed to save version",
     });
-
-    const data = await res.json();
-
-    if(!res.ok) {
-        const detail = data && data.detail ? data.detail : "Failed to save version";
-        throw new Error(detail);
-    } 
-
-    return data;
 }
-
 
 /**
  * Fetch all saved versions for the authenticated user, optionally filtered by search.
- * @param {string} token - JWT authentication token
  * @param {string} [search] - Optional search string to filter by name or tag
  * @returns {Promise<Array<VersionResponse>>} Array of matching versions
  * @throws {Error} Server error detail message on non-OK responses
  */
-export async function getVersions(token, search) {
-    const url = new URL(`${API_BASE}/api/versions/`);
-    if (search) {
-        url.searchParams.set("search", search);
-    }
-    const res = await fetch(url.toString(), {
-        headers: {
-            Authorization: `Bearer ${token}`
-        }
+export async function getVersions(search) {
+    const query = search ? `?search=${encodeURIComponent(search)}` : "";
+    return apiJson(`/api/versions/${query}`, {
+        errorMessage: "Failed to fetch versions",
     });
-    const data = await res.json();
-    if (!res.ok) {
-        throw new Error(data?.detail || "Failed to fetch versions");
-    }
-    return data;
 }
-
 
 /**
  * Fetch a single version by ID.
- * @param {string} token - JWT authentication token
  * @param {number} id - The version ID to retrieve
  * @returns {Promise<VersionResponse>} The requested version
  * @throws {Error} Server error detail message if not found or unauthorized
  */
-export async function getVersion(token, id) {
-    const res = await fetch(`${API_BASE}/api/versions/${id}`, {
-        headers: {
-            Authorization: `Bearer ${token}`
-        }
+export async function getVersion(id) {
+    return apiJson(`/api/versions/${id}`, {
+        errorMessage: "Failed to fetch version",
     });
-    const data = await res.json();
-    if (!res.ok) {
-        throw new Error(data?.detail || "Failed to fetch version");
-    }
-    return data;
 }
-
 
 /**
  * Update a version's name and tag.
- * @param {string} token - JWT authentication token
  * @param {number} id - The version ID to update
  * @param {Object} payload
  * @param {string} payload.name - New version name
@@ -91,36 +66,22 @@ export async function getVersion(token, id) {
  * @returns {Promise<VersionResponse>} The updated version
  * @throws {Error} Server error detail message on non-OK responses
  */
-export async function updateVersion(token, id, payload) {
-    const res = await fetch(`${API_BASE}/api/versions/${id}`, {
+export async function updateVersion(id, payload) {
+    return apiJson(`/api/versions/${id}`, {
         method: "PATCH",
-        headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
+        body: payload,
+        errorMessage: "Failed to update version",
     });
-    const data = await res.json();
-    if (!res.ok) {
-        throw new Error(data?.detail || "Failed to update version");
-    }
-    return data;
 }
 
 /**
  * Delete a saved version.
- * @param {string} token - JWT authentication token
  * @param {number} id - The version ID to delete
  * @returns {Promise<void>}
  * @throws {Error} Server error detail message if not found or unauthorized
  */
-export async function deleteVersion(token, id) {
-    const res = await fetch(`${API_BASE}/api/versions/${id}`, {
-        method: "DELETE",
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
-    });
+export async function deleteVersion(id) {
+    const res = await apiFetch(`/api/versions/${id}`, { method: "DELETE" });
 
     if (!res.ok) {
         let detail = "Failed to delete version";

@@ -1,10 +1,16 @@
 import pytest
 
 def register_and_get_headers(client, email="searchuser@example.com", password="password123"):
+    """Register + log in, returning the headers callers must send.
+
+    Authentication now travels in an httpOnly cookie, which the TestClient's
+    cookie jar stores and replays automatically -- so the returned dict carries
+    only the CSRF header that cookie-authenticated writes require.
+    """
     client.post("/auth/register", json={"email": email, "password": password})
     login_res = client.post("/auth/login", json={"email": email, "password": password})
-    token = login_res.json()["token"]
-    return {"Authorization": f"Bearer {token}"}
+    assert login_res.status_code == 200, f"login failed: {login_res.text}"
+    return {"X-Requested-With": "PromptBox"}
 
 def save_version(client, headers, name="test prompt", prompt_text="hello", tag=None):
     body = {"name": name, "prompt_text": prompt_text}
@@ -47,13 +53,20 @@ def test_search_no_match_returns_empty_list(client):
     assert res.status_code == 200
     assert res.json() == []
     
-def test_search_does_not_return_other_userversions(client):
-    headers_a = register_and_get_headers(client, email="search4@example.com")
-    headers_b = register_and_get_headers(client, email="search5@example.com")
-    
-    save_version(client, headers_a, name="shared keyword prompt", tag="secret")
-    
-    res = client.get("/api/versions/?search=shared", headers=headers_b)
+def test_search_does_not_return_other_userversions(make_authed_client):
+    """One user's search must not reach another user's versions.
+
+    Two independent clients, because a session is now a cookie: logging both
+    users in through one client would overwrite the first session with the
+    second and the test would silently stop testing isolation.
+    """
+    client_a = make_authed_client("search4@example.com")
+    client_b = make_authed_client("search5@example.com")
+    csrf = {"X-Requested-With": "PromptBox"}
+
+    save_version(client_a, csrf, name="shared keyword prompt", tag="secret")
+
+    res = client_b.get("/api/versions/?search=shared")
     
     assert res.status_code == 200
     assert res.json() == []

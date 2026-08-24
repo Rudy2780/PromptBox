@@ -1,22 +1,15 @@
-const API_BASE = "https://promptbox-9d83.onrender.com";
-
+import { apiFetch } from "./http.js";
 
 /**
  * Download a prompt version export as a file. Triggers a browser download
  * by creating a temporary anchor element with the response blob.
- * @param {string} token - JWT authentication token
  * @param {number} versionId - The version ID to export
  * @param {string} format - Export format ("txt" | "md" | "json")
  * @returns {Promise<void>} Resolves after the download is triggered
  * @throws {Error} Server error detail message on non-OK responses
  */
-export async function downloadExport(token, versionId, format) {
-    const res = await fetch(`${API_BASE}/api/export/${versionId}?format=${format}`, {
-        method: "GET",
-        headers: {
-            Authorization: `Bearer ${token}`
-        }
-    });
+export async function downloadExport(versionId, format) {
+    const res = await apiFetch(`/api/export/${versionId}?format=${format}`);
 
     if (!res.ok) {
         let errorMessage = "Failed to export version";
@@ -41,7 +34,7 @@ export async function downloadExport(token, versionId, format) {
 
     const blob = await res.blob();
     const url = window.URL.createObjectURL(blob);
-    
+
     // Create a temporary link element to trigger the download
     const a = document.createElement('a');
     a.style.display = 'none';
@@ -49,7 +42,7 @@ export async function downloadExport(token, versionId, format) {
     a.download = filename;
     document.body.appendChild(a);
     a.click();
-    
+
     // Cleanup
     window.URL.revokeObjectURL(url);
     document.body.removeChild(a);

@@ -13,7 +13,7 @@ describe('ExportDropdown', () => {
   })
 
   test('export dropdown renders .txt, .md, and .json options', () => {
-    render(<ExportDropdown token="fake-token" versionId={1} />)
+    render(<ExportDropdown versionId={1} />)
     
     expect(screen.getByRole('combobox')).toBeInTheDocument()
     expect(screen.getByText('.txt (Plain Text)')).toBeInTheDocument()
@@ -24,16 +24,16 @@ describe('ExportDropdown', () => {
   test('clicking export triggers a download request with the correct format parameter', async () => {
     exportApi.downloadExport.mockResolvedValue()
     
-    render(<ExportDropdown token="fake-token" versionId={1} />)
+    render(<ExportDropdown versionId={1} />)
     
     fireEvent.change(screen.getByRole('combobox'), { target: { value: 'md' } })
     fireEvent.click(screen.getByRole('button', { name: /export/i }))
     
-    expect(exportApi.downloadExport).toHaveBeenCalledWith('fake-token', 1, 'md')
+    expect(exportApi.downloadExport).toHaveBeenCalledWith(1, 'md')
   })
 
   test('export button is disabled when no version is selected or loaded', () => {
-    render(<ExportDropdown token="fake-token" versionId={null} />)
+    render(<ExportDropdown versionId={null} />)
     
     const button = screen.getByRole('button', { name: /export/i })
     expect(button).toBeDisabled()
@@ -42,7 +42,7 @@ describe('ExportDropdown', () => {
   test('UI displays success feedback after export attempt', async () => {
     exportApi.downloadExport.mockResolvedValue()
     
-    render(<ExportDropdown token="fake-token" versionId={1} />)
+    render(<ExportDropdown versionId={1} />)
     
     fireEvent.click(screen.getByRole('button', { name: /export/i }))
     
@@ -54,7 +54,7 @@ describe('ExportDropdown', () => {
   test('UI displays error feedback after export attempt fails', async () => {
     exportApi.downloadExport.mockRejectedValue(new Error('Network error'))
     
-    render(<ExportDropdown token="fake-token" versionId={1} />)
+    render(<ExportDropdown versionId={1} />)
     
     fireEvent.click(screen.getByRole('button', { name: /export/i }))
     

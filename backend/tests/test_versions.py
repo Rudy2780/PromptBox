@@ -5,10 +5,16 @@ Tests for POST /api/versions endpoint
 import pytest
 
 def register_and_get_headers(client, email="versionuser@example.com", password="password123"):
+    """Register + log in, returning the headers callers must send.
+
+    Authentication now travels in an httpOnly cookie, which the TestClient's
+    cookie jar stores and replays automatically -- so the returned dict carries
+    only the CSRF header that cookie-authenticated writes require.
+    """
     client.post("/auth/register", json={"email": email, "password": password})
     login_res = client.post("/auth/login", json={"email": email, "password": password})
-    token = login_res.json()["token"]
-    return {"Authorization": f"Bearer {token}"}
+    assert login_res.status_code == 200, f"login failed: {login_res.text}"
+    return {"X-Requested-With": "PromptBox"}
 
 VALID_VERSION = {
     "name": "v1 - inital draft",

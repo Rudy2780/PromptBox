@@ -2,7 +2,7 @@ import { useState } from "react";
 import { saveVersion } from "../api/versionsApi";
 import "./SaveVersion.css";
 
-export default function SaveVersion({ token, promptText, responseText, responseModel, responseLatency}) {
+export default function SaveVersion({ promptText, responseText, responseModel, responseLatency}) {
     const [name, setName] = useState("");
     const [tag, setTag] = useState("");
     const [includeResponse, setIncludeResponse] = useState(false)
@@ -25,7 +25,7 @@ export default function SaveVersion({ token, promptText, responseText, responseM
         }
 
         try {
-            await saveVersion(token, payload);
+            await saveVersion(payload);
             setMessage("Version Saved!");
             setName("");
             setTag("");
@@ -60,7 +60,7 @@ export default function SaveVersion({ token, promptText, responseText, responseM
                 />
                 Include response
             </label>
-            <button onClick={handleSave} disabled={!name || !token || loading}>
+            <button onClick={handleSave} disabled={!name || loading}>
                 {loading ? "Saving..." : "Save Version"}
             </button>
             {message && <p style={{ color: "green", fontSize: "0.9rem" }}>{message}</p>}

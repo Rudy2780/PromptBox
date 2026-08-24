@@ -1,5 +1,9 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 
+from app.config import settings
+from app.dependencies.auth import get_current_user
+from app.models.user import UserInfo
+from app.rate_limit import ip_key, limiter, user_key
 from app.schemas.execute_schema import (
     ExecuteRequest,
     ExecuteResponse,
@@ -44,9 +48,16 @@ def _provider_for_model(model: str) -> str:
 
 
 @router.post("/api/execute", response_model=ExecuteResponse)
-def execute(request: ExecuteRequest) -> ExecuteResponse:
-    prompt = (request.prompt or "").strip()
-    api_key = (request.api_key or "").strip()
+@limiter.limit(settings.LLM_RATE_LIMIT_PER_USER, key_func=user_key)
+@limiter.limit(settings.LLM_RATE_LIMIT_PER_IP, key_func=ip_key)
+def execute(
+    request: Request,
+    response: Response,
+    body: ExecuteRequest,
+    user: UserInfo = Depends(get_current_user),
+) -> ExecuteResponse:
+    prompt = (body.prompt or "").strip()
+    api_key = (body.api_key or "").strip()
 
     if not prompt:
         raise HTTPException(status_code=400, detail="Prompt must not be empty.")
@@ -54,7 +65,7 @@ def execute(request: ExecuteRequest) -> ExecuteResponse:
     if not api_key:
         raise HTTPException(status_code=400, detail="API key must not be empty.")
 
-    provider = _get_provider(request.model, api_key)
+    provider = _get_provider(body.model, api_key)
 
     try:
         response_text, latency = provider.run_prompt(prompt)
@@ -65,15 +76,22 @@ def execute(request: ExecuteRequest) -> ExecuteResponse:
         # Other provider issues become generic upstream errors.
         raise HTTPException(status_code=502, detail=str(exc))
 
-    return ExecuteResponse(model=request.model, response_text=response_text, latency=latency)
+    return ExecuteResponse(model=body.model, response_text=response_text, latency=latency)
 
 
 @router.post("/api/prompt", response_model=PromptBatchResponse)
-def prompt_batch(request: PromptBatchRequest) -> PromptBatchResponse:
-    prompt = (request.prompt or "").strip()
-    models = request.models or []
-    api_keys = request.api_keys or {}
-    single_key = (request.api_key or "").strip()
+@limiter.limit(settings.LLM_RATE_LIMIT_PER_USER, key_func=user_key)
+@limiter.limit(settings.LLM_RATE_LIMIT_PER_IP, key_func=ip_key)
+def prompt_batch(
+    request: Request,
+    response: Response,
+    body: PromptBatchRequest,
+    user: UserInfo = Depends(get_current_user),
+) -> PromptBatchResponse:
+    prompt = (body.prompt or "").strip()
+    models = body.models or []
+    api_keys = body.api_keys or {}
+    single_key = (body.api_key or "").strip()
 
     if not prompt:
         raise HTTPException(status_code=400, detail="Prompt must not be empty.")
