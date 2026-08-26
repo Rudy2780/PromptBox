@@ -1,0 +1,380 @@
+/*
+ * PromptBox design tokens and shared primitives.
+ *
+ * Single source of truth for colour, spacing, radius and the small set of
+ * reusable element styles (buttons, cards, pills, labels, inputs). Component
+ * stylesheets should compose these rather than redeclaring hex values.
+ */
+
+:root {
+  /* Surfaces, darkest to lightest */
+  --pb-bg: #1b1b1e;
+  --pb-sidebar-bg: #191919;
+  --pb-surface: #242427;
+  --pb-surface-raised: #2c2c30;
+  --pb-surface-hover: #313136;
+
+  /* Lines */
+  --pb-border: #35353b;
+  --pb-border-strong: #45454d;
+
+  /* Text */
+  --pb-text: #ececee;
+  --pb-text-secondary: #b4b4bc;
+  --pb-text-muted: #85858f;
+  --pb-text-faint: #61616a;
+
+  /* Purple accent */
+  --pb-accent: #7c5cfc;
+  --pb-accent-hover: #8f74ff;
+  --pb-accent-soft: rgba(124, 92, 252, 0.16);
+  --pb-accent-border: rgba(124, 92, 252, 0.55);
+
+  /* Light lavender surface, used for emphasis panels on dark backgrounds */
+  --pb-lavender-bg: #edebfe;
+  --pb-lavender-border: #d9d4fb;
+  --pb-lavender-text: #2b2545;
+  --pb-lavender-muted: #6b6486;
+
+  /* Status */
+  --pb-success: #6fcf97;
+  --pb-success-soft: rgba(111, 207, 151, 0.14);
+  --pb-danger: #f2777a;
+  --pb-danger-soft: rgba(242, 119, 122, 0.14);
+  --pb-warning: #e6b673;
+
+  /* Category pill colours (template categories) */
+  --pb-cat-green-bg: rgba(111, 207, 151, 0.16);
+  --pb-cat-green-text: #8fe0b0;
+  --pb-cat-purple-bg: rgba(124, 92, 252, 0.18);
+  --pb-cat-purple-text: #b4a1ff;
+  --pb-cat-amber-bg: rgba(230, 182, 115, 0.16);
+  --pb-cat-amber-text: #e6c08a;
+
+  /* Geometry */
+  --pb-radius-sm: 6px;
+  --pb-radius: 10px;
+  --pb-radius-lg: 14px;
+  --pb-radius-pill: 999px;
+
+  --pb-sidebar-width: 240px;
+
+  --pb-font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --pb-font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+    monospace;
+}
+
+/* ---------------------------------------------------------------- base --- */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--pb-bg);
+  color: var(--pb-text);
+  font-family: var(--pb-font);
+  font-size: 14px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* -------------------------------------------------------------- labels --- */
+
+/* The small uppercase section labels used throughout the reference layout. */
+.pb-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--pb-text-muted);
+  margin: 0 0 8px;
+}
+
+.pb-caption {
+  font-size: 12px;
+  color: var(--pb-text-muted);
+  margin: 0;
+}
+
+.pb-page-title {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--pb-text-muted);
+  margin: 0 0 6px;
+}
+
+.pb-page-lede {
+  font-size: 14px;
+  color: var(--pb-text-secondary);
+  margin: 0 0 24px;
+  max-width: 68ch;
+}
+
+/* --------------------------------------------------------------- cards --- */
+
+.pb-card {
+  background: var(--pb-surface);
+  border: 1px solid var(--pb-border);
+  border-radius: var(--pb-radius-lg);
+  padding: 18px;
+}
+
+.pb-card--flush {
+  padding: 0;
+  overflow: hidden;
+}
+
+/* Light emphasis panel (the lavender treatment from the reference). */
+.pb-card--lavender {
+  background: var(--pb-lavender-bg);
+  border-color: var(--pb-lavender-border);
+  color: var(--pb-lavender-text);
+}
+
+/* ------------------------------------------------------------- buttons --- */
+
+.pb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  font: inherit;
+  font-weight: 500;
+  color: var(--pb-text);
+  background: transparent;
+  border: 1px solid var(--pb-border-strong);
+  border-radius: var(--pb-radius);
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.pb-btn:hover:not(:disabled) {
+  background: var(--pb-surface-hover);
+  border-color: var(--pb-accent-border);
+}
+
+.pb-btn:focus-visible {
+  outline: 2px solid var(--pb-accent);
+  outline-offset: 2px;
+}
+
+.pb-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.pb-btn--primary {
+  background: var(--pb-accent);
+  border-color: var(--pb-accent);
+  color: #fff;
+}
+
+.pb-btn--primary:hover:not(:disabled) {
+  background: var(--pb-accent-hover);
+  border-color: var(--pb-accent-hover);
+}
+
+.pb-btn--ghost {
+  border-color: transparent;
+  color: var(--pb-text-secondary);
+}
+
+.pb-btn--ghost:hover:not(:disabled) {
+  color: var(--pb-text);
+  background: var(--pb-surface-hover);
+  border-color: transparent;
+}
+
+.pb-btn--sm {
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+.pb-btn--danger:hover:not(:disabled) {
+  color: var(--pb-danger);
+  border-color: var(--pb-danger);
+}
+
+.pb-btn--block {
+  width: 100%;
+}
+
+/* --------------------------------------------------------------- pills --- */
+
+.pb-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  font: inherit;
+  font-size: 13px;
+  border-radius: var(--pb-radius-pill);
+  border: 1px solid var(--pb-border-strong);
+  background: transparent;
+  color: var(--pb-text-secondary);
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.pb-pill:hover:not(:disabled) {
+  color: var(--pb-text);
+  border-color: var(--pb-border-strong);
+  background: var(--pb-surface-hover);
+}
+
+.pb-pill:focus-visible {
+  outline: 2px solid var(--pb-accent);
+  outline-offset: 2px;
+}
+
+.pb-pill[aria-pressed="true"],
+.pb-pill.is-selected {
+  border-color: var(--pb-accent-border);
+  color: var(--pb-accent);
+  background: var(--pb-accent-soft);
+}
+
+.pb-pill:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Static (non-interactive) tag pill. */
+.pb-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  font-size: 12px;
+  border-radius: var(--pb-radius-pill);
+  background: var(--pb-cat-purple-bg);
+  color: var(--pb-cat-purple-text);
+}
+
+.pb-tag--green {
+  background: var(--pb-cat-green-bg);
+  color: var(--pb-cat-green-text);
+}
+
+.pb-tag--purple {
+  background: var(--pb-cat-purple-bg);
+  color: var(--pb-cat-purple-text);
+}
+
+.pb-tag--amber {
+  background: var(--pb-cat-amber-bg);
+  color: var(--pb-cat-amber-text);
+}
+
+/* -------------------------------------------------------------- inputs --- */
+
+.pb-input,
+.pb-select,
+.pb-textarea {
+  width: 100%;
+  padding: 10px 12px;
+  font: inherit;
+  color: var(--pb-text);
+  background: var(--pb-surface-raised);
+  border: 1px solid var(--pb-border);
+  border-radius: var(--pb-radius);
+  transition: border-color 0.15s ease;
+}
+
+.pb-input::placeholder,
+.pb-textarea::placeholder {
+  color: var(--pb-text-faint);
+}
+
+.pb-input:focus,
+.pb-select:focus,
+.pb-textarea:focus {
+  outline: none;
+  border-color: var(--pb-accent-border);
+}
+
+.pb-input:disabled,
+.pb-select:disabled,
+.pb-textarea:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pb-textarea {
+  resize: vertical;
+  min-height: 120px;
+  line-height: 1.6;
+}
+
+.pb-select {
+  appearance: none;
+  padding-right: 34px;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%2385858f' d='M1 1.5 6 6.5l5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+}
+
+/* -------------------------------------------------------------- status --- */
+
+.pb-status {
+  margin: 10px 0 0;
+  font-size: 13px;
+}
+
+.pb-status--ok {
+  color: var(--pb-success);
+}
+
+.pb-status--error {
+  color: var(--pb-danger);
+}
+
+.pb-status--muted {
+  color: var(--pb-text-muted);
+}
+
+.pb-empty {
+  color: var(--pb-text-muted);
+  font-size: 13px;
+  margin: 0;
+}
+
+/* ------------------------------------------------------------ utility --- */
+
+.pb-stack > * + * {
+  margin-top: 14px;
+}
+
+.pb-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}

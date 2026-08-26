@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { validateKey } from "../api/client";
+import "./ModelSelector.css";
 
 // Copy of the supported-model list; source of truth is backend/app/supported_models.py
 const MODEL_GROUPS = {
@@ -93,13 +94,14 @@ export default function ModelSelector({
 
   return (
     <div className="model-config">
-      <label>Model Configuration</label>
-
       {setProvider && setModel ? (
-        <>
-          <label htmlFor="provider-select">Provider</label>
+        <div className="model-config__legacy">
+          <label className="pb-label" htmlFor="provider-select">
+            Provider
+          </label>
           <select
             id="provider-select"
+            className="pb-select"
             value={provider || "openai"}
             onChange={(e) => setProvider(e.target.value)}
           >
@@ -110,9 +112,12 @@ export default function ModelSelector({
             ))}
           </select>
 
-          <label htmlFor="model-select">Model</label>
+          <label className="pb-label" htmlFor="model-select">
+            Model
+          </label>
           <select
             id="model-select"
+            className="pb-select"
             value={model || MODEL_GROUPS[provider || "openai"][0]}
             onChange={(e) => setModel(e.target.value)}
           >
@@ -122,65 +127,90 @@ export default function ModelSelector({
               </option>
             ))}
           </select>
-        </>
+        </div>
       ) : null}
 
-      <label>Models (mix providers freely)</label>
-      <div className="model-checkboxes">
-        {Object.entries(MODEL_GROUPS).map(([prov, models]) => (
-          <div key={prov}>
-            <strong style={{ fontSize: "0.95rem" }}>{prov}</strong>
-            {models.map((m) => (
-              <label key={m} className="model-option">
-                <input
-                  type="checkbox"
-                  checked={safeSelectedModels.includes(m)}
-                  onChange={() => toggleModel(m)}
-                />
-                {m}
-              </label>
-            ))}
-          </div>
-        ))}
-      </div>
-
-      <label>API Keys (per provider)</label>
-      {hasMultiKey ? (
-        <div className="api-keys-grid">
-          {Object.keys(MODEL_GROUPS).map((prov) => (
-            <div key={prov} className="api-key-row">
-              <span className="api-key-label">{prov}</span>
-              <input
-                type="password"
-                placeholder={`Key for ${prov}`}
-                value={apiKeys?.[prov] || ""}
-                onChange={(e) => setApiKeys?.((prev) => ({ ...prev, [prov]: e.target.value }))}
-                className="api-key-input"
-              />
+      <section className="model-config__section">
+        <span className="pb-label">Model</span>
+        <div className="model-config__groups">
+          {Object.entries(MODEL_GROUPS).map(([prov, models]) => (
+            <div className="model-config__group" key={prov}>
+              <span className="model-config__group-name">{prov}</span>
+              <div className="model-config__pills">
+                {models.map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    className="pb-pill"
+                    aria-pressed={safeSelectedModels.includes(m)}
+                    onClick={() => toggleModel(m)}
+                  >
+                    {m}
+                  </button>
+                ))}
+              </div>
             </div>
           ))}
         </div>
-      ) : (
-        <input
-          type="password"
-          placeholder="Enter API Key"
-          value={apiKey || ""}
-          onChange={(e) => setApiKey?.(e.target.value)}
-          className="api-key-input"
-        />
-      )}
+      </section>
 
-      <button onClick={handleValidate} disabled={!selectedProviders.length || loading}>
-        {loading ? "Validating..." : hasMultiKey ? "Validate Selected Providers" : "Validate Key"}
-      </button>
+      <section className="model-config__section">
+        <span className="pb-label">API keys</span>
+        {hasMultiKey ? (
+          <div className="model-config__keys">
+            {Object.keys(MODEL_GROUPS).map((prov) => (
+              <div key={prov} className="model-config__key-row">
+                <label className="model-config__key-label" htmlFor={`key-${prov}`}>
+                  {prov}
+                </label>
+                <input
+                  id={`key-${prov}`}
+                  type="password"
+                  className="pb-input"
+                  placeholder={`Key for ${prov}`}
+                  value={apiKeys?.[prov] || ""}
+                  onChange={(e) =>
+                    setApiKeys?.((prev) => ({ ...prev, [prov]: e.target.value }))
+                  }
+                />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <input
+            type="password"
+            className="pb-input"
+            placeholder="Enter API Key"
+            value={apiKey || ""}
+            onChange={(e) => setApiKey?.(e.target.value)}
+          />
+        )}
 
-      {status === "valid" && <p style={{ color: "green", fontSize: "0.9rem" }}>API key is valid</p>}
-      {status === "invalid" && <p style={{ color: "red", fontSize: "0.9rem" }}>Invalid API key</p>}
-      {status === "error" && (
-        <p style={{ color: "red", fontSize: "0.9rem" }}>
-          Could not reach the server to validate. Check your connection and try again.
-        </p>
-      )}
+        <button
+          className="pb-btn pb-btn--sm model-config__validate"
+          onClick={handleValidate}
+          disabled={!selectedProviders.length || loading}
+        >
+          {loading
+            ? "Validating..."
+            : hasMultiKey
+              ? "Validate Selected Providers"
+              : "Validate Key"}
+        </button>
+
+        {status === "valid" && (
+          <p className="pb-status pb-status--ok">API key is valid</p>
+        )}
+        {status === "invalid" && (
+          <p className="pb-status pb-status--error">Invalid API key</p>
+        )}
+        {status === "error" && (
+          <p className="pb-status pb-status--error">
+            Could not reach the server to validate. Check your connection and try
+            again.
+          </p>
+        )}
+      </section>
     </div>
   );
 }

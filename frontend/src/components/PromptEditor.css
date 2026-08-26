@@ -1,0 +1,11 @@
+.prompt-editor__input {
+  min-height: 200px;
+  font-family: var(--pb-font);
+  font-size: 15px;
+}
+
+.prompt-editor__actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}

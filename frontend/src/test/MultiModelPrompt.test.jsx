@@ -34,7 +34,7 @@ describe("Multi-model prompt execution", () => {
   it("submitting a prompt with two models renders two response windows", async () => {
     render(<Harness />);
     fireEvent.change(screen.getByLabelText(/Prompt/i), { target: { value: "Hello" } });
-    fireEvent.click(screen.getByText(/Execute/i));
+    fireEvent.click(screen.getByRole("button", { name: /run prompt/i }));
 
     await waitFor(() => {
       const cards = screen.getAllByText(/resp-/i);
@@ -45,7 +45,7 @@ describe("Multi-model prompt execution", () => {
   it("each response window displays the correct model name", async () => {
     render(<Harness />);
     fireEvent.change(screen.getByLabelText(/Prompt/i), { target: { value: "Hello" } });
-    fireEvent.click(screen.getByText(/Execute/i));
+    fireEvent.click(screen.getByRole("button", { name: /run prompt/i }));
 
     await waitFor(() => {
       expect(screen.getByText("gpt-4o")).toBeInTheDocument();
@@ -56,7 +56,7 @@ describe("Multi-model prompt execution", () => {
   it("each response window displays response latency", async () => {
     render(<Harness />);
     fireEvent.change(screen.getByLabelText(/Prompt/i), { target: { value: "Hello" } });
-    fireEvent.click(screen.getByText(/Execute/i));
+    fireEvent.click(screen.getByRole("button", { name: /run prompt/i }));
 
     await waitFor(() => {
       // latencies formatted with toFixed(2)

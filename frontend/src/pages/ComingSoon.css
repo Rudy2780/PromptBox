@@ -1,0 +1,187 @@
+/*
+ * Layout skeletons for features that are not built yet.
+ *
+ * Every box here is deliberately empty: the shapes convey where the feature
+ * will live without implying data that does not exist. Nothing is clickable.
+ */
+
+.soon {
+  position: relative;
+}
+
+.soon__note {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  margin: 0 0 24px;
+  border: 1px solid var(--pb-border);
+  border-radius: var(--pb-radius-pill);
+  background: var(--pb-surface);
+  color: var(--pb-text-secondary);
+  font-size: 13px;
+}
+
+.soon__note::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--pb-text-faint);
+}
+
+/* The skeleton region is visibly inert. */
+.soon__frame {
+  border: 1px solid var(--pb-border);
+  border-radius: var(--pb-radius-lg);
+  background: var(--pb-surface);
+  padding: 28px;
+  opacity: 0.5;
+  filter: grayscale(1);
+  user-select: none;
+}
+
+.soon__frame + .soon__frame {
+  margin-top: 20px;
+}
+
+.soon__block {
+  background: var(--pb-surface-raised);
+  border: 1px solid var(--pb-border);
+  border-radius: var(--pb-radius-sm);
+}
+
+/* ------------------------------------------------------------- pipeline --- */
+
+.soon__pipeline {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.soon__step {
+  width: 132px;
+  height: 92px;
+  border: 1px solid var(--pb-border-strong);
+  border-radius: var(--pb-radius);
+  background: var(--pb-surface-raised);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.soon__step-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  background: var(--pb-border-strong);
+}
+
+.soon__step-line {
+  width: 62px;
+  height: 7px;
+  border-radius: 4px;
+  background: var(--pb-border-strong);
+}
+
+.soon__arrow {
+  color: var(--pb-text-faint);
+  font-size: 15px;
+}
+
+.soon__step--add {
+  border-style: dashed;
+  background: transparent;
+}
+
+.soon__subrow {
+  display: flex;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.soon__chip {
+  width: 116px;
+  height: 28px;
+  border-radius: var(--pb-radius-pill);
+}
+
+/* ---------------------------------------------------------------- stats --- */
+
+.soon__stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 14px;
+}
+
+.soon__stat {
+  height: 84px;
+  border-radius: var(--pb-radius);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+}
+
+.soon__stat-value {
+  width: 68%;
+  height: 20px;
+  border-radius: 4px;
+  background: var(--pb-border-strong);
+}
+
+.soon__stat-label {
+  width: 45%;
+  height: 9px;
+  border-radius: 4px;
+  background: var(--pb-border);
+}
+
+.soon__rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.soon__list-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 4px;
+}
+
+.soon__list-row + .soon__list-row {
+  border-top: 1px solid var(--pb-border);
+}
+
+.soon__bar {
+  height: 10px;
+  border-radius: 4px;
+  background: var(--pb-border-strong);
+}
+
+.soon__bar--wide {
+  width: 150px;
+}
+
+.soon__bar--mid {
+  width: 84px;
+}
+
+.soon__bar--narrow {
+  width: 56px;
+}
+
+.soon__forecast {
+  height: 76px;
+  border-radius: var(--pb-radius);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  justify-content: center;
+}

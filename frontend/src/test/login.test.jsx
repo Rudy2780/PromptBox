@@ -17,6 +17,7 @@ describe("Login form", () => {
     })
 
     render(<MemoryRouter><Login onAuth={vi.fn()} /></MemoryRouter>)
+    fireEvent.click(screen.getByTestId("email-toggle"))
 
     fireEvent.click(screen.getByTestId("login-btn"))
 
@@ -36,6 +37,7 @@ describe("Login form", () => {
 
   test("blocks submission when password is under 8 characters", async () => {
     render(<MemoryRouter><Login onAuth={vi.fn()} /></MemoryRouter>)
+    fireEvent.click(screen.getByTestId("email-toggle"))
 
     fireEvent.click(screen.getByTestId("login-btn"))
 
@@ -56,6 +58,7 @@ describe("Login form", () => {
 
   test("blocks submission when email field is empty", async () => {
     render(<MemoryRouter><Login onAuth={vi.fn()} /></MemoryRouter>)
+    fireEvent.click(screen.getByTestId("email-toggle"))
 
     fireEvent.click(screen.getByTestId("login-btn"))
 

@@ -1,8 +1,16 @@
 import { useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Dashboard from "./pages/Dashboard";
+
+import AppShell from "./components/AppShell";
 import Login from "./components/Login";
+import Editor from "./pages/Editor";
+import Chains from "./pages/Chains";
+import CostForecast from "./pages/CostForecast";
+import Community from "./pages/Community";
+import Settings from "./pages/Settings";
+import { WorkspaceProvider } from "./workspace";
 import { getMe, logout } from "./api/authApi";
+import "./theme.css";
 import "./App.css";
 
 function App() {
@@ -49,19 +57,38 @@ function App() {
     );
   }
 
+  // Every signed-in route renders inside the sidebar shell.
+  const shell = (page) =>
+    session ? (
+      <AppShell user={session}>{page}</AppShell>
+    ) : (
+      <Navigate to="/" replace />
+    );
+
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route
-          path="/"
-          element={session ? <Navigate to="/dashboard" replace /> : <Login onAuth={setSession} />}
-        />
-        <Route
-          path="/dashboard"
-          element={session ? <Dashboard user={session} onLogout={handleLogout} /> : <Navigate to="/" replace />}
-        />
-      </Routes>
-    </BrowserRouter>
+    <WorkspaceProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route
+            path="/"
+            element={
+              session ? <Navigate to="/editor" replace /> : <Login onAuth={setSession} />
+            }
+          />
+          <Route path="/editor" element={shell(<Editor user={session} />)} />
+          <Route path="/chains" element={shell(<Chains />)} />
+          <Route path="/cost-forecast" element={shell(<CostForecast />)} />
+          <Route path="/community" element={shell(<Community />)} />
+          <Route
+            path="/settings"
+            element={shell(<Settings user={session} onLogout={handleLogout} />)}
+          />
+          {/* Kept so existing links and bookmarks continue to resolve. */}
+          <Route path="/dashboard" element={<Navigate to="/editor" replace />} />
+          <Route path="*" element={<Navigate to={session ? "/editor" : "/"} replace />} />
+        </Routes>
+      </BrowserRouter>
+    </WorkspaceProvider>
   );
 }
 

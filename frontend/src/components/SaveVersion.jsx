@@ -38,6 +38,7 @@ export default function SaveVersion({ promptText, responseText, responseModel, r
 
     return (
         <div className="save-version">
+            <p className="save-version__title">Save version</p>
             <input
             type="text"
             placeholder="Version name"
@@ -51,7 +52,7 @@ export default function SaveVersion({ promptText, responseText, responseModel, r
             onChange={(e) => setTag(e.target.value)}
             maxLength={32}
             />
-            <label>
+            <label className="save-version__check">
                 <input
                 type="checkbox"
                 checked={includeResponse}
@@ -60,11 +61,11 @@ export default function SaveVersion({ promptText, responseText, responseModel, r
                 />
                 Include response
             </label>
-            <button onClick={handleSave} disabled={!name || loading}>
+            <button className="pb-btn pb-btn--primary" onClick={handleSave} disabled={!name || loading}>
                 {loading ? "Saving..." : "Save Version"}
             </button>
-            {message && <p style={{ color: "green", fontSize: "0.9rem" }}>{message}</p>}
-            {error && <p style={{ color: "red", fontSize: "0.9rem" }}>{error}</p>}
+            {message && <p className="pb-status pb-status--ok">{message}</p>}
+            {error && <p className="pb-status pb-status--error">{error}</p>}
         </div>
     );
 }

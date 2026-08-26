@@ -32,7 +32,7 @@ describe("PromptEditor", () => {
     );
 
     const promptInput = screen.getByLabelText(/prompt/i);
-    const submitButton = screen.getByRole("button", { name: /execute/i });
+    const submitButton = screen.getByRole("button", { name: /run prompt/i });
 
     fireEvent.change(promptInput, { target: { value: "Say hello" } });
 
@@ -75,7 +75,7 @@ describe("PromptEditor", () => {
     );
 
     const promptInput = screen.getByLabelText(/prompt/i);
-    const submitButton = screen.getByRole("button", { name: /execute/i });
+    const submitButton = screen.getByRole("button", { name: /run prompt/i });
 
     fireEvent.change(promptInput, { target: { value: "Say hello" } });
     fireEvent.click(submitButton);

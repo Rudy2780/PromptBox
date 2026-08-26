@@ -1,0 +1,53 @@
+.model-config > * + * {
+  margin-top: 24px;
+}
+
+.model-config__legacy > .pb-label {
+  margin-top: 14px;
+}
+
+.model-config__legacy > .pb-label:first-child {
+  margin-top: 0;
+}
+
+.model-config__groups {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.model-config__group-name {
+  display: block;
+  font-size: 12px;
+  color: var(--pb-text-faint);
+  margin-bottom: 7px;
+}
+
+.model-config__pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.model-config__keys {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.model-config__key-row {
+  display: grid;
+  grid-template-columns: 78px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+}
+
+.model-config__key-label {
+  font-size: 12px;
+  color: var(--pb-text-muted);
+  text-transform: capitalize;
+}
+
+.model-config__validate {
+  margin-top: 14px;
+}

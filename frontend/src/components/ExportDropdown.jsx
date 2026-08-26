@@ -30,9 +30,12 @@ export default function ExportDropdown({ versionId }) {
 
     return (
         <div className="export-container">
+            <p className="export-container__title">Export version</p>
+            <div className="export-container__row">
             <label htmlFor="export-format" className="sr-only">Format</label>
             <select 
                 id="export-format"
+                className="pb-select"
                 value={format} 
                 onChange={(e) => setFormat(e.target.value)}
                 disabled={!versionId || loading}
@@ -45,10 +48,11 @@ export default function ExportDropdown({ versionId }) {
             <button 
                 onClick={handleExport} 
                 disabled={!versionId || loading}
-                className="export-btn"
+                className="pb-btn export-btn"
             >
                 {loading ? 'Exporting...' : 'Export'}
             </button>
+            </div>
             
             {message.text && (
                 <span className={`export-message ${message.type}`}>

@@ -1,44 +1,96 @@
+.diff-picker {
+  background: var(--pb-surface);
+  border: 1px solid var(--pb-border);
+  border-radius: var(--pb-radius-lg);
+  padding: 18px;
+}
+
+.diff-picker h2 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--pb-text);
+  margin: 0;
+}
+
+.diff-picker p {
+  color: var(--pb-text-muted);
+  font-size: 13px;
+}
+
+.diff-picker .refresh-btn {
+  font: inherit;
+  font-size: 12px;
+  padding: 5px 10px;
+  color: var(--pb-text-secondary);
+  background: transparent;
+  border: 1px solid var(--pb-border-strong);
+  border-radius: var(--pb-radius-sm);
+  cursor: pointer;
+}
+
+.diff-picker .refresh-btn:hover {
+  color: var(--pb-accent);
+  border-color: var(--pb-accent-border);
+}
+
 .diff-picker-list {
   list-style: none;
+  margin: 14px 0 0;
   padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 320px;
+  overflow-y: auto;
 }
 
 .diff-picker-btn {
   width: 100%;
-  padding: 0.5rem 1rem;
-  margin-bottom: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  background: transparent;
+  text-align: left;
+  font: inherit;
+  font-size: 13px;
+  padding: 10px 12px;
+  color: var(--pb-text-secondary);
+  background: var(--pb-surface-raised);
+  border: 1px solid var(--pb-border);
+  border-radius: var(--pb-radius);
   cursor: pointer;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  color: inherit;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.diff-picker-btn:hover {
+  color: var(--pb-text);
+  border-color: var(--pb-border-strong);
 }
 
 .diff-picker-btn.selected {
-  border-color: #0d6efd;
-  background-color: #cfe2ff;
-  color: #000;
+  border-color: var(--pb-accent-border);
+  color: var(--pb-accent);
+  background: var(--pb-accent-soft);
+}
+
+.diff-picker-list li {
+  list-style: none;
 }
 
 .compare-btn {
-  margin-top: 1rem;
-  padding: 0.5rem 1.5rem;
-  background-color: #0d6efd;
-  color: white;
-  border: none;
-  border-radius: 6px;
+  margin-top: 14px;
+  font: inherit;
+  font-size: 13px;
+  padding: 9px 16px;
+  color: #fff;
+  background: var(--pb-accent);
+  border: 1px solid var(--pb-accent);
+  border-radius: var(--pb-radius);
   cursor: pointer;
 }
 
-.compare-btn:disabled {
-  background-color: #aaa;
-  cursor: not-allowed;
+.compare-btn:hover:not(:disabled) {
+  background: var(--pb-accent-hover);
+  border-color: var(--pb-accent-hover);
 }
 
-.version-date {
-  font-size: 0.75rem;
-  color: #666;
+.compare-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { executeBatch } from "../api/executeApi";
+import "./PromptEditor.css";
 
 export default function PromptEditor({
   models,
@@ -37,18 +38,27 @@ export default function PromptEditor({
     !isKeyValid || !prompt || isLoading || !models || models.length === 0;
 
   return (
-    <div className="prompt-editor textarea">
-      <label htmlFor="prompt-input">Prompt</label>
+    <div className="prompt-editor">
+      <label className="pb-label" htmlFor="prompt-input">
+        Your prompt
+      </label>
       <textarea
         id="prompt-input"
-        aria-label="Prompt"
+        className="pb-textarea prompt-editor__input"
         value={prompt}
         onChange={(event) => setPrompt(event.target.value)}
-        rows={6}
+        rows={10}
+        placeholder="Write a prompt, then run it against the selected models."
       />
-      <button onClick={handleSubmit} disabled={isDisabled}>
-        {isLoading ? "Running..." : "Execute"}
-      </button>
+      <div className="prompt-editor__actions">
+        <button
+          className="pb-btn"
+          onClick={handleSubmit}
+          disabled={isDisabled}
+        >
+          {isLoading ? "Running..." : "Run prompt"}
+        </button>
+      </div>
     </div>
   );
 }

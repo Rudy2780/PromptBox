@@ -17,6 +17,8 @@ describe("Registration form", () => {
     })
 
     render(<MemoryRouter><Login /></MemoryRouter>)
+    // Email sign-in is revealed by the "or continue with email" toggle.
+    fireEvent.click(screen.getByTestId("email-toggle"))
 
     fireEvent.change(screen.getByPlaceholderText("Email Id"), {
       target: { value: "newuser@example.com" },
@@ -43,6 +45,8 @@ describe("Registration form", () => {
     })
 
     render(<MemoryRouter><Login /></MemoryRouter>)
+    // Email sign-in is revealed by the "or continue with email" toggle.
+    fireEvent.click(screen.getByTestId("email-toggle"))
 
     fireEvent.change(screen.getByPlaceholderText("Email Id"), {
       target: { value: "existing@example.com" },
@@ -61,6 +65,8 @@ describe("Registration form", () => {
 
   test("blocks submission when password is under 8 characters", async () => {
     render(<MemoryRouter><Login /></MemoryRouter>)
+    // Email sign-in is revealed by the "or continue with email" toggle.
+    fireEvent.click(screen.getByTestId("email-toggle"))
 
     fireEvent.change(screen.getByPlaceholderText("Email Id"), {
       target: { value: "test@example.com" },
@@ -78,6 +84,8 @@ describe("Registration form", () => {
 
   test("blocks submission when email is invalid", async () => {
     render(<MemoryRouter><Login /></MemoryRouter>)
+    // Email sign-in is revealed by the "or continue with email" toggle.
+    fireEvent.click(screen.getByTestId("email-toggle"))
 
     fireEvent.change(screen.getByPlaceholderText("Email Id"), {
       target: { value: "" },

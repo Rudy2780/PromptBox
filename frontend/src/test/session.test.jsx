@@ -99,6 +99,7 @@ describe("Login", () => {
 
     renderLogin(onAuth);
 
+    fireEvent.click(screen.getByTestId("email-toggle")); // reveal the email form
     fireEvent.click(screen.getByTestId("login-btn")); // switch to Login mode
     fireEvent.change(screen.getByPlaceholderText("Email Id"), {
       target: { value: "user@example.com" },
