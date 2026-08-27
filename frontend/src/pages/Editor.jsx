@@ -9,9 +9,8 @@ import DiffVersionPicker from "../components/DiffVersionPicker";
 import DiffView from "../components/DiffView";
 import ExportDropdown from "../components/ExportDropdown";
 import { useWorkspace } from "../workspaceContext";
+import { TABS } from "../workspaceStorage";
 import "./Editor.css";
-
-const TABS = ["Write", "Versions", "Results"];
 
 export default function Editor({ user }) {
   // A guest has no session, so every authenticated call would 401. Rather than
@@ -37,9 +36,10 @@ export default function Editor({ user }) {
     setCurrentVersionId,
     currentTag,
     setCurrentTag,
+    activeTab,
+    setActiveTab,
   } = useWorkspace();
 
-  const [activeTab, setActiveTab] = useState("Write");
   const [error, setError] = useState(null);
   const [versionA, setVersionA] = useState(null);
   const [versionB, setVersionB] = useState(null);

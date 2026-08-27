@@ -9,6 +9,7 @@ import CostForecast from "./pages/CostForecast";
 import Community from "./pages/Community";
 import Settings from "./pages/Settings";
 import { WorkspaceProvider } from "./workspace";
+import { clearWorkspaceState } from "./workspaceStorage";
 import { getMe, logout } from "./api/authApi";
 import "./theme.css";
 import "./App.css";
@@ -18,6 +19,11 @@ function App() {
   // The distinction matters: rendering the login screen before the session
   // check finishes would flash the login form at users who are already signed in.
   const [session, setSession] = useState(undefined);
+
+  // Bumped on sign-out to remount the workspace provider. The workspace now
+  // outlives a refresh, which also means the previous user's draft prompt would
+  // otherwise still be sitting there for whoever signs in next on this machine.
+  const [workspaceEpoch, setWorkspaceEpoch] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -44,7 +50,11 @@ function App() {
       await logout();
     } finally {
       // Drop local state even if the request failed, so the UI never claims
-      // to be signed in when the user asked to leave.
+      // to be signed in when the user asked to leave. The stored copy goes
+      // first, so the remount below reads an empty slate rather than restoring
+      // what was just discarded.
+      clearWorkspaceState();
+      setWorkspaceEpoch((epoch) => epoch + 1);
       setSession(null);
     }
   }
@@ -66,7 +76,7 @@ function App() {
     );
 
   return (
-    <WorkspaceProvider>
+    <WorkspaceProvider key={workspaceEpoch}>
       <BrowserRouter>
         <Routes>
           <Route

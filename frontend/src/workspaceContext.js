@@ -8,8 +8,9 @@ import { createContext, useContext } from "react";
  * the Editor and silently discard the user's draft prompt, their selected
  * models, and the provider API keys they had just validated.
  *
- * Deliberately in memory only -- API keys are held here, and they should not
- * outlive the tab or reach storage.
+ * The non-sensitive half of this state is mirrored to sessionStorage so a
+ * refresh does not discard it either -- see workspaceStorage.js for what is
+ * written and why the API keys and their validation status are not.
  */
 export const WorkspaceContext = createContext(null);
 

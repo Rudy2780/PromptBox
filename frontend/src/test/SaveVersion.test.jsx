@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import SaveVersion from "../components/SaveVersion";
+import { WorkspaceProvider } from "../workspace";
 import * as versionsApi from "../api/versionsApi";
 
 vi.mock("../api/versionsApi");
@@ -19,12 +20,14 @@ describe("SaveVersion", () => {
         });
 
         render(
-            <SaveVersion
-            promptText="Explain quicksort"
-            responseText={null}
-            responseModel={null}
-            responseLatency={null}
-            />
+            <WorkspaceProvider>
+                <SaveVersion
+                promptText="Explain quicksort"
+                responseText={null}
+                responseModel={null}
+                responseLatency={null}
+                />
+            </WorkspaceProvider>
         );
 
         fireEvent.change(screen.getByPlaceholderText("Version name"), {
@@ -56,12 +59,14 @@ describe("SaveVersion", () => {
         );
 
         render(
-            <SaveVersion
-            promptText=""
-            responseText={null}
-            responseModel={null}
-            responseLatency={null}
-            />
+            <WorkspaceProvider>
+                <SaveVersion
+                promptText=""
+                responseText={null}
+                responseModel={null}
+                responseLatency={null}
+                />
+            </WorkspaceProvider>
         );
 
         fireEvent.change(screen.getByPlaceholderText("Version name"), {
