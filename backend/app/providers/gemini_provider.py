@@ -53,7 +53,19 @@ class GeminiProvider(LLMProvider):
         if genai is None:
             return False
         try:
-            genai.Client(api_key=self.api_key).models.list()
+            # The client MUST be held in a local for the duration of the call.
+            # Written as one expression -- `genai.Client(...).models.list()` --
+            # nothing references the Client once `.models` has been evaluated,
+            # so CPython frees it immediately; `genai.Client.__del__` closes the
+            # shared httpx transport that the `models` object still points at,
+            # and `.list()` then raises "Cannot send a request, as the client
+            # has been closed" *before any request leaves the process*. The
+            # blanket except below turned that into "key rejected", so
+            # /api/validate-key answered 401 for every Gemini key, valid or not.
+            # Only this SDK closes its transport on GC, which is why the same
+            # chained style is harmless in the OpenAI and Anthropic providers.
+            client = genai.Client(api_key=self.api_key)
+            client.models.list()
             return True
         except Exception:
             return False
