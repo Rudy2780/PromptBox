@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { Analytics } from "@vercel/analytics/react";
 
 import AppShell from "./components/AppShell";
 import Login from "./components/Login";
@@ -98,6 +99,7 @@ function App() {
           <Route path="*" element={<Navigate to={session ? "/editor" : "/"} replace />} />
         </Routes>
       </BrowserRouter>
+      <Analytics />
     </WorkspaceProvider>
   );
 }
