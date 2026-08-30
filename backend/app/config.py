@@ -38,6 +38,28 @@ def _require_jwt_secret() -> str:
     return secret
 
 
+def _require_database_url() -> str:
+    """Return the configured database URL, or fail fast at import time.
+
+    Mirrors ``_require_jwt_secret``. The previous ``or "sqlite:///./promptbox.db"``
+    fallback meant a missing or misspelled DATABASE_URL silently started the
+    application against an empty local SQLite file rather than the real
+    database -- a failure that surfaces much later as absent data instead of
+    at startup, and one that looks identical to a working deployment.
+    """
+    url = os.environ.get("DATABASE_URL")
+
+    if url is None or not url.strip():
+        raise RuntimeError(
+            "DATABASE_URL is not set. Set it in the environment (backend/.env "
+            "locally, the service environment in production), e.g. "
+            "postgresql://user:password@host/dbname?sslmode=require. "
+            "There is no default."
+        )
+
+    return url.strip()
+
+
 def _env_flag(name: str, default: bool) -> bool:
     raw = os.getenv(name)
     if raw is None:
@@ -46,7 +68,7 @@ def _env_flag(name: str, default: bool) -> bool:
 
 
 class Settings:
-    DATABASE_URL = os.getenv("DATABASE_URL") or "sqlite:///./promptbox.db"
+    DATABASE_URL = _require_database_url()
     JWT_SECRET = _require_jwt_secret()
 
     # --- Rate limiting -----------------------------------------------------
