@@ -234,6 +234,11 @@ python -m app.migrations
 uvicorn app.main:app --reload --port 8000
 ```
 
+> **Note:** `backend/venv/` is intentionally not tracked in git — a virtual
+> environment contains machine-specific absolute paths and platform-specific
+> binaries, so it is never portable between checkouts. Create your own with the
+> steps above; `requirements.txt` is the source of truth for dependencies.
+
 The backend API will be available at: `http://localhost:8000`
 
 Interactive API docs are **disabled by default**. Set `ENABLE_API_DOCS=true` in
