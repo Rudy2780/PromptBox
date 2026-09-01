@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import AppShell from "./components/AppShell";
 import Login from "./components/Login";
+import LinkAccount from "./pages/LinkAccount";
 import Editor from "./pages/Editor";
 import Chains from "./pages/Chains";
 import CostForecast from "./pages/CostForecast";
@@ -85,6 +86,19 @@ function App() {
               session ? <Navigate to="/editor" replace /> : <Login onAuth={setSession} />
             }
           />
+          {/* The API redirects OAuth failures to /login?auth_error=<code>, so
+              that path has to render the sign-in screen rather than 404 into
+              the catch-all below. */}
+          <Route
+            path="/login"
+            element={
+              session ? <Navigate to="/editor" replace /> : <Login onAuth={setSession} />
+            }
+          />
+          {/* Deliberately outside the signed-in shell: reaching this page means
+              a provider login matched an existing password account, so there is
+              no session yet -- proving the password is what creates one. */}
+          <Route path="/link-account" element={<LinkAccount onAuth={setSession} />} />
           <Route path="/editor" element={shell(<Editor user={session} />)} />
           <Route path="/chains" element={shell(<Chains />)} />
           <Route path="/cost-forecast" element={shell(<CostForecast />)} />

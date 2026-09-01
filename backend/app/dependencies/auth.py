@@ -26,6 +26,24 @@ def _unauthorized(detail: str) -> HTTPException:
     return HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=detail)
 
 
+def require_csrf_header(request: Request) -> None:
+    """Enforce the custom-header check on a cookie-authenticated write.
+
+    Factored out of ``get_current_user`` so that endpoints which act on a
+    cookie *without* resolving a signed-in user can apply the same rule --
+    ``/auth/link/confirm`` is one: it is unauthenticated by definition (the
+    session is what it is trying to create) but it acts on the pending-link
+    cookie, so a cross-site page must not be able to drive it either.
+    """
+    if request.method not in UNSAFE_METHODS:
+        return
+    if request.headers.get(CSRF_HEADER) != CSRF_HEADER_VALUE:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Missing or invalid {CSRF_HEADER} header",
+        )
+
+
 def get_current_user(
     request: Request,
     credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
@@ -40,12 +58,8 @@ def get_current_user(
     else:
         raise _unauthorized("Not authenticated")
 
-    if from_cookie and request.method in UNSAFE_METHODS:
-        if request.headers.get(CSRF_HEADER) != CSRF_HEADER_VALUE:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Missing or invalid {CSRF_HEADER} header",
-            )
+    if from_cookie:
+        require_csrf_header(request)
 
     try:
         payload = jwt.decode(

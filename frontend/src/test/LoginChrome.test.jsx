@@ -23,21 +23,13 @@ describe("sign-in screen", () => {
     expect(screen.getByTestId("google-btn")).toBeInTheDocument();
   });
 
-  test("OAuth buttons are disabled and labelled as unavailable", () => {
+  test("OAuth entry points are live, and the placeholder label is gone", () => {
     renderLogin();
-    expect(screen.getByTestId("github-btn")).toBeDisabled();
-    expect(screen.getByTestId("google-btn")).toBeDisabled();
-    expect(screen.getByText("OAuth coming soon")).toBeInTheDocument();
-  });
-
-  test("clicking an OAuth button attempts no request", () => {
-    renderLogin();
-
-    fireEvent.click(screen.getByTestId("github-btn"));
-    fireEvent.click(screen.getByTestId("google-btn"));
-
-    // No OAuth provider is configured on the backend; there is nothing to call.
-    expect(global.fetch).not.toHaveBeenCalled();
+    // They are links now rather than disabled buttons -- see
+    // oauthLogin.test.jsx for where each one goes.
+    expect(screen.getByTestId("github-btn")).toHaveAttribute("href");
+    expect(screen.getByTestId("google-btn")).toHaveAttribute("href");
+    expect(screen.queryByText("OAuth coming soon")).not.toBeInTheDocument();
   });
 
   test("the email form is hidden until the toggle is used", () => {

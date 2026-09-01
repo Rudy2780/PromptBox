@@ -126,6 +126,74 @@ class Settings:
     JWT_AUDIENCE = os.getenv("JWT_AUDIENCE") or "promptbox-web"
     JWT_ISSUER = os.getenv("JWT_ISSUER") or "promptbox-api"
 
+    # --- OAuth providers ---------------------------------------------------
+    # Each provider is optional: PromptBox runs perfectly well with only
+    # email/password, so a missing GOOGLE_CLIENT_ID must not stop the service
+    # from booting the way a missing JWT_SECRET does. What *is* fail-fast is a
+    # half-configured provider (see _validate_oauth_config): an id without a
+    # secret is always a deployment mistake, and letting it through turns into
+    # an opaque 401 from the provider during the token exchange instead of a
+    # clear error at startup.
+    #
+    # The secrets below are read here and used in exactly one place -- the
+    # server-side token exchange in services/oauth_service.py. They never reach
+    # a response body, a redirect URL, or a cookie.
+    GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID") or None
+    GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET") or None
+    GITHUB_CLIENT_ID = os.getenv("GITHUB_CLIENT_ID") or None
+    GITHUB_CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET") or None
+
+    # Where the browser is sent once a provider callback has established a
+    # session. Required as soon as any provider is configured: handing control
+    # back to the SPA is the last thing the callback does, and there is no safe
+    # default to guess.
+    FRONTEND_URL = (os.getenv("FRONTEND_URL") or "").rstrip("/") or None
+
+    # The API's own public origin, used to build the ``redirect_uri`` sent to
+    # the provider. It has to match what is registered in the Google/GitHub
+    # console character for character, so it is settable explicitly. When it is
+    # unset the callback URL is derived from the incoming request instead (see
+    # oauth_service.callback_url), which is what local development wants.
+    OAUTH_REDIRECT_BASE_URL = (
+        os.getenv("OAUTH_REDIRECT_BASE_URL") or ""
+    ).rstrip("/") or None
+
+    # The OAuth `state` value is carried in its own short-lived cookie and
+    # compared against the one the provider echoes back. Ten minutes is the
+    # length of a slow consent screen, not the length of a session.
+    OAUTH_STATE_COOKIE_NAME = (
+        os.getenv("OAUTH_STATE_COOKIE_NAME") or "promptbox_oauth_state"
+    )
+    OAUTH_STATE_TTL_SECONDS = int(os.getenv("OAUTH_STATE_TTL_SECONDS") or 600)
+    # SameSite=Lax, not None: the callback arrives as a top-level navigation
+    # from the provider, which Lax allows, and Lax is the tighter of the two.
+    # (The session cookie cannot use Lax -- it has to ride on cross-site
+    # fetch() calls from the SPA -- but this one never does.)
+    OAUTH_STATE_COOKIE_SAMESITE = "lax"
+
+    # How long to wait on Google/GitHub. A hung provider must not hold a worker
+    # open indefinitely.
+    OAUTH_HTTP_TIMEOUT_SECONDS = float(os.getenv("OAUTH_HTTP_TIMEOUT_SECONDS") or 10)
+
+    # A sign-in that matched a password-protected account is parked in this
+    # cookie until the user proves the password. Unlike the state cookie this
+    # one MUST be SameSite=None: the confirmation is an ordinary cross-site
+    # fetch() from the SPA, which Lax would not send. It therefore inherits the
+    # session cookie's CSRF compensation -- the origin allowlist plus the
+    # X-Requested-With check, which the confirm endpoint applies explicitly.
+    OAUTH_LINK_COOKIE_NAME = (
+        os.getenv("OAUTH_LINK_COOKIE_NAME") or "promptbox_oauth_link"
+    )
+    OAUTH_PENDING_LINK_TTL_SECONDS = int(
+        os.getenv("OAUTH_PENDING_LINK_TTL_SECONDS") or 600
+    )
+
+    # Where the SPA asks for the password. Kept next to FRONTEND_URL because
+    # they are pasted together into a redirect; both are paths on the SPA, not
+    # on this API.
+    FRONTEND_LOGIN_PATH = os.getenv("FRONTEND_LOGIN_PATH") or "/login"
+    FRONTEND_LINK_PATH = os.getenv("FRONTEND_LINK_PATH") or "/link-account"
+
     # --- CORS --------------------------------------------------------------
     # Must stay an explicit allowlist: with credentialed cookies a wildcard
     # origin is both rejected by browsers and the thing standing between the
@@ -160,3 +228,47 @@ def _validate_cookie_policy(config: Settings) -> None:
 
 
 _validate_cookie_policy(settings)
+
+def _validate_oauth_config(config: Settings) -> None:
+    """Reject half-configured OAuth providers at startup.
+
+    A client id without its secret (or the reverse) is never intentional. The
+    failure it produces at runtime is a generic ``invalid_client`` from the
+    provider, mid-login, for a user who did nothing wrong -- so it is caught
+    here instead, where the message can name the missing variable.
+
+    Note what is *not* required: nothing at all. A deployment with no provider
+    credentials simply has no OAuth buttons that work, which is the state this
+    application shipped in before now.
+    """
+    pairs = (
+        ("google", "GOOGLE_CLIENT_ID", config.GOOGLE_CLIENT_ID,
+         "GOOGLE_CLIENT_SECRET", config.GOOGLE_CLIENT_SECRET),
+        ("github", "GITHUB_CLIENT_ID", config.GITHUB_CLIENT_ID,
+         "GITHUB_CLIENT_SECRET", config.GITHUB_CLIENT_SECRET),
+    )
+
+    configured = []
+    for provider, id_name, id_value, secret_name, secret_value in pairs:
+        if bool(id_value) != bool(secret_value):
+            missing = id_name if id_value is None else secret_name
+            present = secret_name if id_value is None else id_name
+            raise RuntimeError(
+                f"{provider} OAuth is half-configured: {present} is set but "
+                f"{missing} is not. Set both, or neither to disable "
+                f"{provider} sign-in."
+            )
+        if id_value:
+            configured.append(provider)
+
+    if configured and not config.FRONTEND_URL:
+        raise RuntimeError(
+            "FRONTEND_URL is not set, but OAuth is configured for "
+            f"{', '.join(configured)}. The provider callback finishes by "
+            "redirecting the browser back to the single-page app, e.g. "
+            "FRONTEND_URL=https://prompt-box-seven.vercel.app. There is no "
+            "default."
+        )
+
+
+_validate_oauth_config(settings)

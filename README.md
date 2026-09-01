@@ -109,6 +109,13 @@ JWT_SECRET=   # required, min 32 chars - generate one, see below
 | `REGISTER_RATE_LIMIT_PER_IP` | Registrations per IP | `5/minute` |
 | `LLM_RATE_LIMIT_PER_USER` / `..._PER_IP` | Prompt execution limits | `30/minute` / `60/minute` |
 | `VALIDATE_KEY_RATE_LIMIT_PER_USER` / `..._PER_IP` | Key-validation limits | `10/minute` / `20/minute` |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Google OAuth credentials. Set both or neither. | unset (Google sign-in off) |
+| `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` | GitHub OAuth credentials. Set both or neither. | unset (GitHub sign-in off) |
+| `FRONTEND_URL` | Where the OAuth callback returns the browser. **Required once any provider is configured.** | unset |
+| `OAUTH_REDIRECT_BASE_URL` | The API's own public origin, used to build `redirect_uri`. | derived from the request |
+| `OAUTH_STATE_TTL_SECONDS` | How long a pending OAuth login stays valid | `600` |
+| `OAUTH_PENDING_LINK_TTL_SECONDS` | How long a link awaiting password confirmation stays valid | `600` |
+| `FRONTEND_LOGIN_PATH` / `FRONTEND_LINK_PATH` | SPA paths the callback redirects to | `/login` / `/link-account` |
 
 Generate a `JWT_SECRET` with:
 
@@ -124,6 +131,70 @@ python -c "import secrets; print(secrets.token_urlsafe(48))"
 > invalidates every outstanding session.
 
 > **Note:** API keys for OpenAI, Gemini, and Anthropic are provided by the user at runtime through the application UI — they are **not** stored in `.env`.
+
+#### Google and GitHub sign-in
+
+Both providers are optional — PromptBox runs on email/password alone, and the
+sign-in screen's provider buttons simply return `503` if their credentials are
+absent. A provider with an id but no secret (or the reverse) is a startup
+error rather than a login-time one.
+
+Register these callback URLs in the provider consoles. They must match
+byte-for-byte, which is what `OAUTH_REDIRECT_BASE_URL` is for:
+
+```
+https://<your-api-host>/auth/callback/google
+https://<your-api-host>/auth/callback/github
+```
+
+Request the **`user:email`** scope for the GitHub app. Without it PromptBox
+cannot read the account's primary verified address, and the login is rejected —
+it will not fall back to the public profile email, which is neither verified
+nor stable.
+
+> **Security:** a provider login is only accepted when the provider reports the
+> email address as *verified*. The `state` parameter is carried in a short-lived
+> httpOnly cookie and checked before the authorization code is spent. Client
+> secrets are used only in the server-side token exchange and never appear in a
+> response.
+
+##### What happens when the email already has an account
+
+A verified email proves the person controls the mailbox right now. It does not
+prove they are the account holder — mailboxes get recycled, corporate addresses
+change hands, and provider accounts get taken over. So the two cases are
+treated differently:
+
+| Matched account | What happens |
+|---|---|
+| **No password set** (created by an earlier OAuth login) | Linked automatically. Both providers have vouched for the same verified address, and there is no credential for the new identity to gain access *around*. |
+| **Password set** | Nothing is written and no session is issued. The browser goes to `/link-account`, where the user must enter the existing password. Only then is the `oauth_identities` row created and the session cookie set. |
+
+The parked attempt is a short-lived signed token in an httpOnly, `SameSite=None`
+cookie — never in a URL, since it names a specific account and authorises
+attaching an identity to it. Confirmation re-reads the account and re-checks
+every precondition, so a token cannot outlive an email change or an account
+deletion. A wrong password leaves the attempt open to retry; anything else
+spends it.
+
+##### Failure handling
+
+The provider legs are browser navigations, so failures redirect to
+`FRONTEND_URL/login?auth_error=<code>` rather than serving a page of raw JSON.
+The codes are a closed set — `access_denied`, `invalid_state`,
+`email_unverified`, `provider_error`, `provider_unavailable`, `link_expired`,
+`invalid_password` — and the SPA maps them to sentences in
+`frontend/src/oauthErrors.js`. Nothing that varies with user input, provider
+output or server state is ever put in the URL, because a URL is written to
+browser history, sent in `Referer` headers, and logged by every proxy in
+between. The login screen clears the parameter once it has shown the message.
+
+Run the migration after upgrading — OAuth adds the `oauth_identities` table and
+makes `users.hashed_password` nullable:
+
+```bash
+python -m app.migrations
+```
 
 ### 3. Test Account
 

@@ -63,6 +63,15 @@ def login(creds: Credentials, request: Request, response: Response, db=Depends(g
     user = get_user_by_email(db, creds.email)
     if not user:
         raise HTTPException(status_code=401, detail="Invalid email or password")
+    if user.hashed_password is None:
+        # An account created through Google or GitHub has no password. Burn the
+        # same bcrypt time the real path would and answer identically, so this
+        # cannot be used to ask "does this address sign in with Google?" -- and
+        # so that a NULL hash is never mistaken for a blank one. Passing None to
+        # verify_password would raise, which would answer the question with a
+        # 500.
+        hash_password(creds.password)
+        raise HTTPException(status_code=401, detail="Invalid email or password")
     if not verify_password(creds.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid email or password")
 

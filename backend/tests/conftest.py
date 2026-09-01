@@ -38,6 +38,20 @@ os.environ["ENABLE_API_DOCS"] = "false"
 os.environ["SESSION_COOKIE_SAMESITE"] = "none"
 os.environ["SESSION_COOKIE_SECURE"] = "true"
 
+# OAuth is pinned for the same reason, and to fake values on purpose. The suite
+# never reaches Google or GitHub -- outbound calls go through an
+# httpx.MockTransport injected in test_oauth.py -- so these only have to exist
+# for the provider to count as configured. Pinning them also means the tests
+# behave identically on a machine whose backend/.env holds real credentials and
+# on CI, where it holds none. OAUTH_REDIRECT_BASE_URL is pinned so the
+# redirect_uri the suite asserts on does not depend on the test client's host.
+os.environ["GOOGLE_CLIENT_ID"] = "test-google-client-id"
+os.environ["GOOGLE_CLIENT_SECRET"] = "test-google-client-secret"
+os.environ["GITHUB_CLIENT_ID"] = "test-github-client-id"
+os.environ["GITHUB_CLIENT_SECRET"] = "test-github-client-secret"
+os.environ["FRONTEND_URL"] = "https://frontend.test"
+os.environ["OAUTH_REDIRECT_BASE_URL"] = "https://api.test"
+
 # TEST_DATABASE_URL is read below, before anything imports ``app.config`` and
 # runs this for us. Loading it here rather than relying on that import keeps
 # the ordering explicit -- and it must come *after* the pins above, because
@@ -197,7 +211,12 @@ def _test_schema():
 # DELETE-based cleanup left it alone: on a fresh-per-run SQLite file seeded rows
 # vanished by themselves, but on a persistent branch they would accumulate
 # across runs and make the template tests depend on run order.
-_TABLES_TO_CLEAR = ("prompt_versions", "users", "templates")
+_TABLES_TO_CLEAR = (
+    "prompt_versions",
+    "oauth_identities",
+    "users",
+    "templates",
+)
 
 
 def _truncate() -> None:

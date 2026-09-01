@@ -1,7 +1,9 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { login, register } from "../api/authApi";
+import { oauthLoginUrl } from "../api/oauthApi";
+import { authErrorMessage } from "../oauthErrors";
 import { GUEST_SESSION } from "../session";
 import "./Login.css";
 
@@ -39,12 +41,32 @@ function GoogleIcon() {
 
 const Login = ({ onAuth }) => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [action, setAction] = useState("Sign Up");
   const [showEmail, setShowEmail] = useState(false);
   const [form, setForm] = useState({ email: "", password: "" });
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [messageKey, setMessageKey] = useState(0);
+
+  // A failed OAuth attempt comes back as ?auth_error=<code>. Render the
+  // matching sentence, then strip the parameter: it has been shown, and
+  // leaving it in the URL means a refresh or a shared link repeats a failure
+  // that is no longer happening. `replace` so Back does not walk into it.
+  const authError = searchParams.get("auth_error");
+  useEffect(() => {
+    if (!authError) return;
+
+    setMessageKey((k) => k + 1);
+    setMessage(authErrorMessage(authError));
+
+    const remaining = new URLSearchParams(searchParams);
+    remaining.delete("auth_error");
+    setSearchParams(remaining, { replace: true });
+    // searchParams/setSearchParams are stable enough here; keying off the code
+    // is what makes this run once per arriving error.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authError]);
 
   const handleChange = (field) => (e) => {
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
@@ -122,28 +144,20 @@ const Login = ({ onAuth }) => {
         </p>
 
         <div className="auth__providers">
-          {/* Disabled: no OAuth provider is configured on the backend. These
-              attempt no request -- there is nothing to call yet. */}
-          <button
-            type="button"
-            className="auth__provider"
-            disabled
-            data-testid="github-btn"
-          >
+          {/* Links, not buttons with an onClick handler. OAuth begins with a
+              real top-level navigation to the API (see api/oauthApi.js), and
+              an anchor is what that is -- which also means these keep working
+              with middle-click, "open in new tab" and the keyboard, none of
+              which a scripted button gives you. */}
+          <a className="auth__provider" href={oauthLoginUrl("github")} data-testid="github-btn">
             <GitHubIcon />
             Continue with GitHub
-          </button>
-          <button
-            type="button"
-            className="auth__provider"
-            disabled
-            data-testid="google-btn"
-          >
+          </a>
+          <a className="auth__provider" href={oauthLoginUrl("google")} data-testid="google-btn">
             <GoogleIcon />
             Continue with Google
-          </button>
+          </a>
         </div>
-        <p className="auth__soon">OAuth coming soon</p>
 
         <p className="auth__divider">
           <button

@@ -57,10 +57,18 @@ export function apiFetch(path, { method = "GET", body, headers = {} } = {}) {
 
 /**
  * Perform a JSON API request and unwrap the body, throwing on failure.
+ *
+ * The thrown Error carries an `authError` property when the response named a
+ * failure code. The OAuth endpoints answer with a stable slug alongside the
+ * prose (see backend ERROR_CODES), and callers need to branch on it — a wrong
+ * password is worth retrying in place, an expired sign-in is not — which is
+ * not something to infer by matching on a message string.
+ *
  * @param {string} path
  * @param {Object} [options] - Same shape as apiFetch, plus `errorMessage`.
  * @returns {Promise<any>} Parsed response body.
  * @throws {Error} The server's `detail`, or `errorMessage` as a fallback.
+ *   `.authError` holds the server's failure code when it sent one.
  */
 export async function apiJson(path, { errorMessage = "Request failed", ...options } = {}) {
   const res = await apiFetch(path, options);
@@ -73,7 +81,11 @@ export async function apiJson(path, { errorMessage = "Request failed", ...option
   }
 
   if (!res.ok) {
-    throw new Error(data?.detail || errorMessage);
+    const error = new Error(data?.detail || errorMessage);
+    if (data?.auth_error) {
+      error.authError = data.auth_error;
+    }
+    throw error;
   }
 
   return data;
